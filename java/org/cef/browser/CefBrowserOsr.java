@@ -4,18 +4,6 @@
 
 package org.cef.browser;
 
-import com.jogamp.nativewindow.NativeSurface;
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLContext;
-import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.awt.GLCanvas;
-
-import org.cef.CefClient;
-import org.cef.callback.CefDragData;
-import org.cef.handler.CefRenderHandler;
-
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -32,278 +20,286 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.nio.ByteBuffer;
-
 import javax.swing.MenuSelectionManager;
-import javax.swing.SwingUtilities;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.callback.CefDragData;
+import org.cef.handler.CefRenderHandler;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
 
 /**
- * This class represents an off-screen rendered browser.
- * The visibility of this class is "package". To create a new
- * CefBrowser instance, please use CefBrowserFactory.
+ * This class represents an off-screen rendered browser. The visibility of this
+ * class is "package". To create a new CefBrowser instance, please use
+ * CefBrowserFactory.
  */
 class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
-    private CefRenderer renderer_;
-    private GLCanvas canvas_;
-    private long window_handle_ = 0;
-    private Rectangle browser_rect_ = new Rectangle(0, 0, 1, 1); // Work around CEF issue #1437.
-    private Point screenPoint_ = new Point(0, 0);
-    private boolean isTransparent_;
+	private CefRenderer renderer_;
+	private GLCanvas canvas_;
+	private long window_handle_ = 0;
+	private Rectangle browser_rect_ = new Rectangle(0, 0, 1, 1); // Work around CEF issue #1437.
+	private Point screenPoint_ = new Point(0, 0);
+	private boolean isTransparent_;
 
-    CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
-        this(client, url, transparent, context, null, null);
-    }
+	CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
+		this(client, url, transparent, context, null, null);
+	}
 
-    private CefBrowserOsr(CefClient client, String url, boolean transparent,
-            CefRequestContext context, CefBrowserOsr parent, Point inspectAt) {
-        super(client, url, context, parent, inspectAt);
-        isTransparent_ = transparent;
-        renderer_ = new CefRenderer(transparent);
-        createGLCanvas();
-    }
+	private CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context,
+			CefBrowserOsr parent, Point inspectAt) {
+		super(client, url, context, parent, inspectAt);
+		isTransparent_ = transparent;
+		renderer_ = new CefRenderer(transparent);
+		createGLCanvas();
+	}
 
-    @Override
-    public void createImmediately() {
-        // Create the browser immediately.
-        createBrowserIfRequired(false);
-    }
+	@Override
+	public void createImmediately() {
+		// Create the browser immediately.
+		createBrowserIfRequired(false);
+	}
 
-    @Override
-    public Component getUIComponent() {
-        return canvas_;
-    }
+	@Override
+	public Component getUIComponent() {
+		return canvas_;
+	}
 
-    @Override
-    public CefRenderHandler getRenderHandler() {
-        return this;
-    }
+	@Override
+	public CefRenderHandler getRenderHandler() {
+		return this;
+	}
 
-    @Override
-    protected CefBrowser_N createDevToolsBrowser(CefClient client, String url,
-            CefRequestContext context, CefBrowser_N parent, Point inspectAt) {
-        return new CefBrowserOsr(
-                client, url, isTransparent_, context, (CefBrowserOsr) this, inspectAt);
-    }
+	@Override
+	protected CefBrowser_N createDevToolsBrowser(CefClient client, String url, CefRequestContext context,
+			CefBrowser_N parent, Point inspectAt) {
+		return new CefBrowserOsr(client, url, isTransparent_, context, (CefBrowserOsr) this, inspectAt);
+	}
 
-    private synchronized long getWindowHandle() {
-        if (window_handle_ == 0) {
-            NativeSurface surface = canvas_.getNativeSurface();
-            if (surface != null) {
-                surface.lockSurface();
-                window_handle_ = getWindowHandle(surface.getSurfaceHandle());
-                surface.unlockSurface();
-                assert (window_handle_ != 0);
-            }
-        }
-        return window_handle_;
-    }
+	private synchronized long getWindowHandle() {
+		if (window_handle_ == 0) {
+			NativeSurface surface = canvas_.getNativeSurface();
+			if (surface != null) {
+				surface.lockSurface();
+				window_handle_ = getWindowHandle(surface.getSurfaceHandle());
+				surface.unlockSurface();
+				assert (window_handle_ != 0);
+			}
+		}
+		return window_handle_;
+	}
 
-    @SuppressWarnings("serial")
-    private void createGLCanvas() {
-        GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
-        GLCapabilities glcapabilities = new GLCapabilities(glprofile);
-        canvas_ = new GLCanvas(glcapabilities) {
-            @Override
-            public void paint(Graphics g) {
-                createBrowserIfRequired(true);
-                super.paint(g);
-            }
-        };
+	@SuppressWarnings("serial")
+	private void createGLCanvas() {
+		GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
+		GLCapabilities glcapabilities = new GLCapabilities(glprofile);
+		canvas_ = new GLCanvas(glcapabilities) {
+			@Override
+			public void paint(Graphics g) {
+				createBrowserIfRequired(true);
+				super.paint(g);
+			}
+		};
 
-        // The GLContext will be re-initialized when changing displays, resulting in calls to
-        // dispose/init/reshape.
-        canvas_.addGLEventListener(new GLEventListener() {
-            @Override
-            public void reshape(
-                    GLAutoDrawable glautodrawable, int x, int y, int width, int height) {
-                browser_rect_.setBounds(x, y, width, height);
-                screenPoint_ = canvas_.getLocationOnScreen();
-                wasResized(width, height);
-            }
+		// The GLContext will be re-initialized when changing displays, resulting in
+		// calls to
+		// dispose/init/reshape.
+		canvas_.addGLEventListener(new GLEventListener() {
+			@Override
+			public void reshape(GLAutoDrawable glautodrawable, int x, int y, int width, int height) {
+				browser_rect_.setBounds(x, y, width, height);
+				screenPoint_ = canvas_.getLocationOnScreen();
+				wasResized(width, height);
+			}
 
-            @Override
-            public void init(GLAutoDrawable glautodrawable) {
-                renderer_.initialize(glautodrawable.getGL().getGL2());
-            }
+			@Override
+			public void init(GLAutoDrawable glautodrawable) {
+				renderer_.initialize(glautodrawable.getGL().getGL2());
+			}
 
-            @Override
-            public void dispose(GLAutoDrawable glautodrawable) {
-                renderer_.cleanup(glautodrawable.getGL().getGL2());
-            }
+			@Override
+			public void dispose(GLAutoDrawable glautodrawable) {
+				renderer_.cleanup(glautodrawable.getGL().getGL2());
+			}
 
-            @Override
-            public void display(GLAutoDrawable glautodrawable) {
-                renderer_.render(glautodrawable.getGL().getGL2());
-            }
-        });
+			@Override
+			public void display(GLAutoDrawable glautodrawable) {
+				renderer_.render(glautodrawable.getGL().getGL2());
+			}
+		});
 
-        canvas_.addMouseListener(new MouseListener() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                sendMouseEvent(e);
-            }
+		canvas_.addMouseListener(new MouseListener() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                sendMouseEvent(e);
-            }
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
 
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                sendMouseEvent(e);
-            }
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                sendMouseEvent(e);
-            }
+			@Override
+			public void mouseExited(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                sendMouseEvent(e);
-            }
-        });
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
+		});
 
-        canvas_.addMouseMotionListener(new MouseMotionListener() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                sendMouseEvent(e);
-            }
+		canvas_.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
 
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                sendMouseEvent(e);
-            }
-        });
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+			}
+		});
 
-        canvas_.addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                sendMouseWheelEvent(e);
-            }
-        });
+		canvas_.addMouseWheelListener(new MouseWheelListener() {
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendMouseWheelEvent(e));
+			}
+		});
 
-        canvas_.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                sendKeyEvent(e);
-            }
+		canvas_.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+			}
 
-            @Override
-            public void keyPressed(KeyEvent e) {
-                sendKeyEvent(e);
-            }
+			@Override
+			public void keyPressed(KeyEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+			}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-                sendKeyEvent(e);
-            }
-        });
+			@Override
+			public void keyReleased(KeyEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+			}
+		});
 
-        canvas_.setFocusable(true);
-        canvas_.addFocusListener(new FocusListener() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                setFocus(false);
-            }
+		canvas_.setFocusable(true);
+		canvas_.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				CefApp.getGuiHandler().asyncExec(() -> setFocus(false));
+			}
 
-            @Override
-            public void focusGained(FocusEvent e) {
-                // Dismiss any Java menus that are currently displayed.
-                MenuSelectionManager.defaultManager().clearSelectedPath();
-                setFocus(true);
-            }
-        });
+			@Override
+			public void focusGained(FocusEvent e) {
+				// Dismiss any Java menus that are currently displayed.
+				CefApp.getGuiHandler().asyncExec(() -> {
+					MenuSelectionManager.defaultManager().clearSelectedPath();
+					setFocus(true);
+				});
+			}
+		});
 
-        // Connect the Canvas with a drag and drop listener.
-        new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
-    }
+		// Connect the Canvas with a drag and drop listener.
+		new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
+	}
 
-    @Override
-    public Rectangle getViewRect(CefBrowser browser) {
-        return browser_rect_;
-    }
+	@Override
+	public Rectangle getViewRect(CefBrowser browser) {
+		return browser_rect_;
+	}
 
-    @Override
-    public Point getScreenPoint(CefBrowser browser, Point viewPoint) {
-        Point screenPoint = new Point(screenPoint_);
-        screenPoint.translate(viewPoint.x, viewPoint.y);
-        return screenPoint;
-    }
+	@Override
+	public Point getScreenPoint(CefBrowser browser, Point viewPoint) {
+		Point screenPoint = new Point(screenPoint_);
+		screenPoint.translate(viewPoint.x, viewPoint.y);
+		return screenPoint;
+	}
 
-    @Override
-    public void onPopupShow(CefBrowser browser, boolean show) {
-        if (!show) {
-            renderer_.clearPopupRects();
-            invalidate();
-        }
-    }
+	@Override
+	public void onPopupShow(CefBrowser browser, boolean show) {
+		if (!show) {
+			CefApp.getGuiHandler().asyncExec(() -> {
+				renderer_.clearPopupRects();
+				invalidate();
+			});
+		}
+	}
 
-    @Override
-    public void onPopupSize(CefBrowser browser, Rectangle size) {
-        renderer_.onPopupSize(size);
-    }
+	@Override
+	public void onPopupSize(CefBrowser browser, Rectangle size) {
+		CefApp.getGuiHandler().asyncExec(() -> renderer_.onPopupSize(size));
+	}
 
-    @Override
-    public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects,
-            ByteBuffer buffer, int width, int height) {
-        // if window is closing, canvas_ or opengl context could be null
-        final GLContext context = canvas_ != null ? canvas_.getContext() : null;
+	@Override
+	public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width,
+			int height) {
+		// if window is closing, canvas_ or opengl context could be null
+		final GLContext context = canvas_ != null ? canvas_.getContext() : null;
 
-        if (context == null) {
-            return;
-        }
+		if (context == null) {
+			return;
+		}
 
-        // This result can occur due to GLContext re-initialization when changing displays.
-        if (context.makeCurrent() == GLContext.CONTEXT_NOT_CURRENT) {
-            return;
-        }
+		// This result can occur due to GLContext re-initialization when changing
+		// displays.
+		if (context.makeCurrent() == GLContext.CONTEXT_NOT_CURRENT) {
+			return;
+		}
 
-        renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
-        context.release();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                canvas_.display();
-            }
-        });
-    }
+		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
+		context.release();
+		CefApp.getGuiHandler().asyncExec(new Runnable() {
+			public void run() {
+				canvas_.display();
+			}
+		});
+	}
 
-    @Override
-    public void onCursorChange(CefBrowser browser, final int cursorType) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                canvas_.setCursor(new Cursor(cursorType));
-            }
-        });
-    }
+	@Override
+	public void onCursorChange(CefBrowser browser, final int cursorType) {
+		CefApp.getGuiHandler().asyncExec(() -> canvas_.setCursor(new Cursor(cursorType)));
+	}
 
-    @Override
-    public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {
-        // TODO(JCEF) Prepared for DnD support using OSR mode.
-        return false;
-    }
+	@Override
+	public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {
+		// TODO(JCEF) Prepared for DnD support using OSR mode.
+		return false;
+	}
 
-    @Override
-    public void updateDragCursor(CefBrowser browser, int operation) {
-        // TODO(JCEF) Prepared for DnD support using OSR mode.
-    }
+	@Override
+	public void updateDragCursor(CefBrowser browser, int operation) {
+		// TODO(JCEF) Prepared for DnD support using OSR mode.
+	}
 
-    private void createBrowserIfRequired(boolean hasParent) {
-        long windowHandle = 0;
-        if (hasParent) {
-            windowHandle = getWindowHandle();
-        }
+	private void createBrowserIfRequired(boolean hasParent) {
+		long windowHandle = 0;
+		if (hasParent) {
+			windowHandle = getWindowHandle();
+		}
 
-        if (getNativeRef("CefBrowser") == 0) {
-            if (getParentBrowser() != null) {
-                createDevTools(getParentBrowser(), getClient(), windowHandle, true, isTransparent_,
-                        null, getInspectAt());
-            } else {
-                createBrowser(getClient(), windowHandle, getUrl(), true, isTransparent_, null,
-                        getRequestContext());
-            }
-        } else {
-            // OSR windows cannot be reparented after creation.
-            setFocus(true);
-        }
-    }
+		if (getNativeRef("CefBrowser") == 0) {
+			if (getParentBrowser() != null) {
+				createDevTools(getParentBrowser(), getClient(), windowHandle, true, isTransparent_, null,
+						getInspectAt());
+			} else {
+				createBrowser(getClient(), windowHandle, getUrl(), true, isTransparent_, null, getRequestContext());
+			}
+		} else {
+			// OSR windows cannot be reparented after creation.
+			setFocus(true);
+		}
+	}
 }
