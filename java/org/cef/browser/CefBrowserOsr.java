@@ -135,63 +135,63 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 		canvas_.addMouseListener(new MouseListener() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 		});
 
 		canvas_.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseEvent(e));
+				sendMouseEvent(e);
 			}
 		});
 
 		canvas_.addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendMouseWheelEvent(e));
+				sendMouseWheelEvent(e);
 			}
 		});
 
 		canvas_.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+				sendKeyEvent(e);
 			}
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+				sendKeyEvent(e);
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> sendKeyEvent(e));
+				sendKeyEvent(e);
 			}
 		});
 
@@ -199,16 +199,16 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 		canvas_.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				CefApp.getGuiHandler().asyncExec(() -> setFocus(false));
+				setFocus(false);
 			}
 
 			@Override
 			public void focusGained(FocusEvent e) {
 				// Dismiss any Java menus that are currently displayed.
-				CefApp.getGuiHandler().asyncExec(() -> {
+				//CefApp.getGuiHandler().asyncExec(() -> {
 					MenuSelectionManager.defaultManager().clearSelectedPath();
 					setFocus(true);
-				});
+				//});
 			}
 		});
 
@@ -261,16 +261,17 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
 		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
 		context.release();
-		CefApp.getGuiHandler().asyncExec(new Runnable() {
-			public void run() {
+		//CefApp.getGuiHandler().asyncExec(new Runnable() {
+			//public void run() {
 				canvas_.display();
-			}
-		});
+			//}
+		//});
 	}
 
 	@Override
 	public void onCursorChange(CefBrowser browser, final int cursorType) {
-		CefApp.getGuiHandler().asyncExec(() -> canvas_.setCursor(new Cursor(cursorType)));
+		return;
+		//CefApp.getGuiHandler().asyncExec(() -> canvas_.setCursor(new Cursor(cursorType)));
 	}
 
 	@Override
