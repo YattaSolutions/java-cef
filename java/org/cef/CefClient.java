@@ -413,7 +413,8 @@ public class CefClient extends CefClientHandler
     @Override
     public void onGotFocus(CefBrowser browser) {
         if (browser == null) return;
-
+        if (focusedBrowser_ == browser) return;
+        
         focusedBrowser_ = browser;
         browser.setFocus(true);
         if (focusHandler_ != null) focusHandler_.onGotFocus(browser);

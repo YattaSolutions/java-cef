@@ -101,7 +101,7 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
             return false;
         }
 
-        CefApp.getGuiHandler().asyncExec(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 // Trigger close of the parent window.
@@ -441,7 +441,7 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
     @Override
     public void setFocus(boolean enable) {
         try {
-            N_SetFocus(enable);
+            //N_SetFocus(enable);
         } catch (UnsatisfiedLinkError ule) {
             ule.printStackTrace();
         }

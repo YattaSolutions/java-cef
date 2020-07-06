@@ -53,7 +53,7 @@ class CefBrowserWr extends CefBrowser_N {
     private Timer delayedUpdate_ = new Timer(100, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            CefApp.getGuiHandler().asyncExec(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     if (isClosed())
@@ -106,7 +106,7 @@ class CefBrowserWr extends CefBrowser_N {
 
             final int finalEvent = event;
 
-            CefApp.getGuiHandler().asyncExec(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     // Send mouse event to the root UI component instead to the browser UI.
@@ -290,7 +290,7 @@ class CefBrowserWr extends CefBrowser_N {
     @Override
     public void createImmediately() {
         justCreated_ = true;
-        CefApp.getGuiHandler().asyncExec(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 // Create the browser immediately. It will be parented to the Java

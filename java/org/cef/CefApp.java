@@ -18,7 +18,8 @@ package org.cef;
     import java.nio.file.Paths;
     import java.util.HashSet;
 
-    import javax.swing.Timer;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /**
  * Exposes static methods for managing the global CEF context.
@@ -279,8 +280,8 @@ public class CefApp extends CefAppHandlerAdapter {
         synchronized (state_) {
             state_ = state;
         }
-        // Execute on the GUI event dispatching thread.
-        guiHandler_.asyncExec(new Runnable() {
+        // Execute on the AWT event dispatching thread.
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 if (appHandler_ != null) appHandler_.stateHasChanged(state);
@@ -288,6 +289,7 @@ public class CefApp extends CefAppHandlerAdapter {
         });
     }
 
+    
     /**
      * To shutdown the system, it's important to call the dispose
      * method. Calling this method closes all client instances with
@@ -490,8 +492,8 @@ public class CefApp extends CefAppHandlerAdapter {
      * Windows with windowed rendering.
      */
     public final void doMessageLoopWork(final long delay_ms) {
-        // Execute on the GUI event dispatching thread.
-        guiHandler_.asyncExec(new Runnable() {
+        // Execute on the AWT event dispatching thread.
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 if (getState() == CefAppState.TERMINATED) return;

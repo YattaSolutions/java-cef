@@ -21,6 +21,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.nio.ByteBuffer;
 import javax.swing.MenuSelectionManager;
+import javax.swing.SwingUtilities;
+
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.callback.CefDragData;
@@ -204,11 +206,13 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				// Dismiss any Java menus that are currently displayed.
-				//CefApp.getGuiHandler().asyncExec(() -> {
+				if (!canvas_.hasFocus()) {
+					// Dismiss any Java menus that are currently displayed.
+					//CefApp.getGuiHandler().asyncExec(() -> {
 					MenuSelectionManager.defaultManager().clearSelectedPath();
 					setFocus(true);
-				//});
+					//});
+				}
 			}
 		});
 
@@ -231,16 +235,14 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 	@Override
 	public void onPopupShow(CefBrowser browser, boolean show) {
 		if (!show) {
-			CefApp.getGuiHandler().asyncExec(() -> {
 				renderer_.clearPopupRects();
 				invalidate();
-			});
 		}
 	}
 
 	@Override
 	public void onPopupSize(CefBrowser browser, Rectangle size) {
-		CefApp.getGuiHandler().asyncExec(() -> renderer_.onPopupSize(size));
+        renderer_.onPopupSize(size);
 	}
 
 	@Override
@@ -261,18 +263,21 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
 		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
 		context.release();
-		//CefApp.getGuiHandler().asyncExec(new Runnable() {
-			//public void run() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
 				canvas_.display();
-			//}
-		//});
 	}
+        });
+    }
 
 	@Override
 	public void onCursorChange(CefBrowser browser, final int cursorType) {
-		return;
-		//CefApp.getGuiHandler().asyncExec(() -> canvas_.setCursor(new Cursor(cursorType)));
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                canvas_.setCursor(new Cursor(cursorType));
 	}
+        });
+    }
 
 	@Override
 	public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {
