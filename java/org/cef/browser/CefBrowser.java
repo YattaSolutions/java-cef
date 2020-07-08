@@ -13,6 +13,7 @@ import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefWindowHandler;
 import org.cef.misc.CefPdfPrintSettings;
 import org.cef.network.CefRequest;
+import org.eclipse.swt.widgets.Composite;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -357,4 +358,6 @@ public interface CefBrowser {
      * @param word replace selected word with this word.
      */
     public void replaceMisspelling(String word);
+
+	Composite createSwtUiComponent(Composite parent);
 }

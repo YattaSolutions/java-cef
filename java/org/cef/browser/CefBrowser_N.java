@@ -7,14 +7,10 @@ package org.cef.browser;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.WindowEvent;
 import java.util.Vector;
-import javax.swing.SwingUtilities;
-import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.callback.CefDragData;
 import org.cef.callback.CefNativeAdapter;
@@ -27,6 +23,7 @@ import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefWindowHandler;
 import org.cef.misc.CefPdfPrintSettings;
 import org.cef.network.CefRequest;
+import org.eclipse.swt.widgets.Composite;
 
 /**
  * This class represents all methods which are connected to the
@@ -101,6 +98,8 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
             return false;
         }
 
+        // TODO
+        /*
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -112,7 +111,8 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
                 }
             }
         });
-
+		*/
+        
         // Cancel the close.
         return true;
     }
@@ -148,7 +148,7 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
      * Create a new browser.
      */
     protected void createBrowser(CefClientHandler clientHandler, long windowHandle, String url,
-            boolean osr, boolean transparent, Component canvas, CefRequestContext context) {
+            boolean osr, boolean transparent, Composite canvas, CefRequestContext context) {
         if (getNativeRef("CefBrowser") == 0 && !isPending_) {
             try {
                 isPending_ = N_CreateBrowser(
@@ -737,7 +737,7 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
     }
 
     private final native boolean N_CreateBrowser(CefClientHandler clientHandler, long windowHandle,
-            String url, boolean osr, boolean transparent, Component canvas,
+            String url, boolean osr, boolean transparent, Composite canvas,
             CefRequestContext context);
     private final native boolean N_CreateDevTools(CefBrowser parent, CefClientHandler clientHandler,
             long windowHandle, boolean osr, boolean transparent, Component canvas, Point inspectAt);

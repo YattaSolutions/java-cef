@@ -38,6 +38,7 @@ import org.cef.CefClient;
 import org.cef.OS;
 import org.cef.handler.CefWindowHandler;
 import org.cef.handler.CefWindowHandlerAdapter;
+import org.eclipse.swt.widgets.Composite;
 
 /**
  * This class represents a windowed rendered browser.
@@ -392,8 +393,8 @@ class CefBrowserWr extends CefBrowser_N {
                         getInspectAt());
                 return true;
             } else {
-                createBrowser(getClient(), windowHandle, getUrl(), false, false, canvas,
-                        getRequestContext());
+                //createBrowser(getClient(), windowHandle, getUrl(), false, false, canvas,
+                //        getRequestContext());
                 return true;
             }
         } else if (hasParent && justCreated_) {
@@ -404,4 +405,10 @@ class CefBrowserWr extends CefBrowser_N {
 
         return false;
     }
+
+	@Override
+	public Composite createSwtUiComponent(Composite parent) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
