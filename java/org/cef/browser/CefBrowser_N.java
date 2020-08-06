@@ -4,8 +4,18 @@
 
 package org.cef.browser;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Window;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowEvent;
+import java.util.Vector;
+import javax.swing.SwingUtilities;
+import org.cef.CefApp;
 import org.cef.CefClient;
-import org.cef.browser.CefRequestContext;
 import org.cef.callback.CefDragData;
 import org.cef.callback.CefNativeAdapter;
 import org.cef.callback.CefPdfPrintCallback;
@@ -17,19 +27,6 @@ import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefWindowHandler;
 import org.cef.misc.CefPdfPrintSettings;
 import org.cef.network.CefRequest;
-
-import java.awt.Canvas;
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.WindowEvent;
-import java.util.Vector;
-
-import javax.swing.SwingUtilities;
 
 /**
  * This class represents all methods which are connected to the
@@ -448,7 +445,7 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
     @Override
     public void setFocus(boolean enable) {
         try {
-            N_SetFocus(enable);
+            //N_SetFocus(enable);
         } catch (UnsatisfiedLinkError ule) {
             ule.printStackTrace();
         }

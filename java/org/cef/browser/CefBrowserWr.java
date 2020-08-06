@@ -39,6 +39,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.OS;
+import org.cef.handler.CefWindowHandler;
+import org.cef.handler.CefWindowHandlerAdapter;
+
 /**
  * This class represents a windowed rendered browser.
  * The visibility of this class is "package". To create a new
