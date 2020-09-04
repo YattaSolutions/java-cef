@@ -4,6 +4,13 @@
 
 package org.cef.browser;
 
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.OS;
+import org.cef.callback.CefDragData;
+import org.cef.handler.CefRenderHandler;
+import org.cef.handler.CefScreenInfo;
+
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -360,12 +367,12 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             return;
         }
 
-        renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
-        context.release();
-        SwingUtilities.invokeLater(new Runnable() {
+		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
+		context.release();
+		CefApp.getGuiHandler().asyncExec(new Runnable() {
             public void run() {
-                canvas_.display();
-            }
+				canvas_.display();
+	}
         });
     }
 
@@ -511,7 +518,7 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             }
         };
 
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (CefApp.getGuiHandler().currentThreadIsGuiThread()) {
             // If called on the AWT event thread, just access the GL API
             try {
                 BufferedImage screenshot = pixelGrabberCallable.call();
@@ -529,7 +536,7 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             // to catch that situation if it accidentally happens).
             CompletableFuture<BufferedImage> future = new CompletableFuture<BufferedImage>() {
                 private void safeguardGet() {
-                    if (SwingUtilities.isEventDispatchThread()) {
+                    if (CefApp.getGuiHandler().currentThreadIsGuiThread()) {
                         throw new RuntimeException(
                                 "Waiting on this Future using the AWT Event Thread is illegal, "
                                 + "because it can potentially deadlock the thread.");
