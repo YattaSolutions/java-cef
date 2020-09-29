@@ -19,7 +19,19 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.EnumSet;
+
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 
@@ -41,6 +53,8 @@ import com.jogamp.opengl.awt.GLCanvas;
  * CefBrowserFactory.
  */
 class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
+
+	private MappedByteBuffer mappedByteBuffer;
 	private CefRenderer renderer_;
 	private GLCanvas canvas_;
 	private long window_handle_ = 0;
@@ -208,16 +222,24 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 			public void focusGained(FocusEvent e) {
 				if (!canvas_.hasFocus()) {
 					// Dismiss any Java menus that are currently displayed.
-					//CefApp.getGuiHandler().asyncExec(() -> {
+					// CefApp.getGuiHandler().asyncExec(() -> {
 					MenuSelectionManager.defaultManager().clearSelectedPath();
 					setFocus(true);
-					//});
+					// });
 				}
 			}
 		});
 
 		// Connect the Canvas with a drag and drop listener.
 		new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
+
+		Path pathToWrite = FileSystems.getDefault().getPath("/dev/shm/chromium_image_buffer");
+		try (FileChannel fileChannel = (FileChannel) Files.newByteChannel(pathToWrite,
+				EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING))) {
+			mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, 60000000);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 	@Override
@@ -235,14 +257,14 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 	@Override
 	public void onPopupShow(CefBrowser browser, boolean show) {
 		if (!show) {
-				renderer_.clearPopupRects();
-				invalidate();
+			renderer_.clearPopupRects();
+			invalidate();
 		}
 	}
 
 	@Override
 	public void onPopupSize(CefBrowser browser, Rectangle size) {
-        renderer_.onPopupSize(size);
+		renderer_.onPopupSize(size);
 	}
 
 	@Override
@@ -262,22 +284,27 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 		}
 
 		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
+
+		// ugly hack, clear and copy all every time (this will probably not work, should be cleared by consumer)
+		mappedByteBuffer.clear();
+		mappedByteBuffer.put(buffer);
+
 		context.release();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
 				canvas_.display();
+			}
+		});
 	}
-        });
-    }
 
 	@Override
 	public void onCursorChange(CefBrowser browser, final int cursorType) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                canvas_.setCursor(new Cursor(cursorType));
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				canvas_.setCursor(new Cursor(cursorType));
+			}
+		});
 	}
-        });
-    }
 
 	@Override
 	public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {

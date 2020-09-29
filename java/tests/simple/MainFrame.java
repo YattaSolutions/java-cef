@@ -14,6 +14,13 @@ import org.cef.browser.CefFrame;
 import org.cef.handler.CefAppHandlerAdapter;
 import org.cef.handler.CefDisplayHandlerAdapter;
 import org.cef.handler.CefFocusHandlerAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ShellCreator;
+import org.eclipse.swt.widgets.Text;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -115,6 +122,7 @@ public class MainFrame extends JFrame {
         //     If this happens, the entered value is passed to the CefBrowser
         //     instance to be loaded as URL.
         address_ = new JTextField(startURL, 100);
+        
         address_.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -123,6 +131,7 @@ public class MainFrame extends JFrame {
         });
 
         // Update the address field when the browser URL changes.
+        
         client_.addDisplayHandler(new CefDisplayHandlerAdapter() {
             @Override
             public void onAddressChange(CefBrowser browser, CefFrame frame, String url) {
@@ -168,6 +177,7 @@ public class MainFrame extends JFrame {
         // (6) To take care of shutting down CEF accordingly, it's important to call
         //     the method "dispose()" of the CefApp instance if the Java
         //     application will be closed. Otherwise you'll get asserts from CEF.
+        
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -182,12 +192,12 @@ public class MainFrame extends JFrame {
         if (!CefApp.startup(args)) {
             System.out.println("Startup initialization failed!");
             return;
-        }
+        }        
 
         // The simple example application is created as anonymous class and points
         // to Google as the very first loaded page. Windowed rendering mode is used by
         // default. If you want to test OSR mode set |useOsr| to true and recompile.
-        boolean useOsr = false;
+        boolean useOsr = true;
         new MainFrame("http://www.google.com", useOsr, false);
     }
 }

@@ -184,6 +184,7 @@ bool Context::Initialize(JNIEnv* env,
 #if defined(OS_WIN) || defined(OS_LINUX)
   // Use external message pump with OSR.
   external_message_pump_ = !!settings.windowless_rendering_enabled;
+  //external_message_pump_ = false;
   if (!external_message_pump_) {
     // Windowed rendering on Windows requires multi-threaded message loop,
     // otherwise something eats the messages required by Java and the Java

@@ -10,7 +10,7 @@ import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-class CefRenderer {
+public class CefRenderer {
     private boolean transparent_;
     private GL2 initialized_context_ = null;
     private int[] texture_id_ = new int[1];
@@ -22,7 +22,7 @@ class CefRenderer {
     private Rectangle original_popup_rect_ = new Rectangle(0, 0, 0, 0);
     private boolean use_draw_pixels_ = false;
 
-    protected CefRenderer(boolean transparent) {
+    public CefRenderer(boolean transparent) {
         transparent_ = transparent;
     }
 
@@ -160,7 +160,7 @@ class CefRenderer {
     }
 
     @SuppressWarnings("static-access")
-    protected void onPaint(GL2 gl2, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer,
+	public void onPaint(GL2 gl2, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer,
             int width, int height) {
         initialize(gl2);
 
