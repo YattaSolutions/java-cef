@@ -4,6 +4,19 @@
 
 package org.cef;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FocusTraversalPolicy;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Vector;
+
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefBrowserFactory;
 import org.cef.browser.CefFrame;
@@ -32,32 +45,12 @@ import org.cef.handler.CefLifeSpanHandler;
 import org.cef.handler.CefLoadHandler;
 import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefRequestHandler;
-import org.cef.handler.CefResourceHandler;
 import org.cef.handler.CefResourceRequestHandler;
 import org.cef.handler.CefScreenInfo;
 import org.cef.handler.CefWindowHandler;
 import org.cef.misc.BoolRef;
-import org.cef.misc.StringRef;
 import org.cef.network.CefRequest;
 import org.cef.network.CefRequest.TransitionType;
-import org.cef.network.CefResponse;
-import org.cef.network.CefURLRequest;
-import org.cef.network.CefWebPluginInfo;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.FocusTraversalPolicy;
-import java.awt.KeyboardFocusManager;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Vector;
-
-import javax.swing.SwingUtilities;
 
 /**
  * Client that owns a browser and renderer.
@@ -66,7 +59,7 @@ public class CefClient extends CefClientHandler
         implements CefContextMenuHandler, CefDialogHandler, CefDisplayHandler, CefDownloadHandler,
                    CefDragHandler, CefFocusHandler, CefJSDialogHandler, CefKeyboardHandler,
                    CefLifeSpanHandler, CefLoadHandler, CefRenderHandler, CefRequestHandler,
-                   CefWindowHandler {
+                   CefWindowHandler, EventListener {
     private HashMap<Integer, CefBrowser> browser_ = new HashMap<Integer, CefBrowser>();
     private CefContextMenuHandler contextMenuHandler_ = null;
     private CefDialogHandler dialogHandler_ = null;
@@ -94,6 +87,7 @@ public class CefClient extends CefClientHandler
             }
         }
     };
+	private EventListener listener;
 
     /**
      * The CTOR is only accessible within this package.
@@ -142,7 +136,7 @@ public class CefClient extends CefClientHandler
     @Override
     protected CefBrowser getBrowser(int identifier) {
         synchronized (browser_) {
-            return browser_.get(new Integer(identifier));
+            return browser_.get(Integer.valueOf(identifier));
         }
     }
 
@@ -531,6 +525,7 @@ public class CefClient extends CefClientHandler
 
         // keep browser reference
         Integer identifier = browser.getIdentifier();
+        browser.setEventListener(this);
         synchronized (browser_) {
             browser_.put(identifier, browser);
         }
@@ -809,4 +804,16 @@ public class CefClient extends CefClientHandler
     public boolean getScreenInfo(CefBrowser arg0, CefScreenInfo arg1) {
         return false;
     }
+
+	public void setEventListener(EventListener listener) {
+		this.listener = listener;
+	}
+
+	@Override
+	public boolean fireEvent(int type, int event, long delay_ms) {
+		if(listener != null) {
+			return listener.fireEvent(type, event, delay_ms);
+		}
+		return false;
+	}
 }

@@ -4,27 +4,29 @@
 
 package org.cef;
 
-    import org.cef.callback.CefSchemeHandlerFactory;
-    import org.cef.handler.CefAppHandler;
-    import org.cef.handler.CefAppHandlerAdapter;
-    import org.cef.handler.CefGuiHandlerAdapter;
-    import org.cef.handler.CefGuiHandler;
-
     import java.awt.event.ActionEvent;
-    import java.awt.event.ActionListener;
-    import java.io.File;
-    import java.io.FilenameFilter;
-    import java.nio.file.Path;
-    import java.nio.file.Paths;
-    import java.util.HashSet;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import org.cef.callback.CefSchemeHandlerFactory;
+import org.cef.handler.CefAppHandler;
+import org.cef.handler.CefAppHandlerAdapter;
+import org.cef.handler.CefGuiHandler;
+import org.cef.handler.CefGuiHandlerAdapter;
+
 /**
  * Exposes static methods for managing the global CEF context.
  */
-public class CefApp extends CefAppHandlerAdapter {
+public class CefApp extends CefAppHandlerAdapter implements EventListener {
+	public static final String VERSION="CHROME_1.0.0";
+	public static final String VARIABLE="chrome.path";
     public final class CefVersion {
         public final int JCEF_COMMIT_NUMBER;
 
@@ -130,6 +132,7 @@ public class CefApp extends CefAppHandlerAdapter {
     private Timer workTimer_ = null;
     private HashSet<CefClient> clients_ = new HashSet<CefClient>();
     private CefSettings settings_ = null;
+    private EventListener listener;
 
     /**
      * To get an instance of this class, use the method
@@ -344,6 +347,7 @@ public class CefApp extends CefAppHandlerAdapter {
             case INITIALIZING:
             case INITIALIZED:
                 CefClient client = new CefClient();
+                client.setEventListener(this);
                 clients_.add(client);
                 return client;
 
@@ -557,6 +561,11 @@ public class CefApp extends CefAppHandlerAdapter {
     public static final boolean startup(String[] args) {
         if (OS.isLinux() || OS.isMacintosh()) {
             SystemBootstrap.loadLibrary("jcef");
+            if(OS.isMacintosh()) {
+            	if(System.getProperty(VARIABLE) != null) {
+                    return N_Startup(null);
+            	}
+            }
             return N_Startup(OS.isMacintosh() ? getCefFrameworkPath(args) : null);
         }
         return true;
@@ -566,9 +575,10 @@ public class CefApp extends CefAppHandlerAdapter {
      * Get the path which contains the jcef library
      * @return The path to the jcef library
      */
-    private static final String getJcefLibPath() {
+    public static final String getJcefLibPath() {
         String library_path = System.getProperty("java.library.path");
-        String[] paths = library_path.split(System.getProperty("path.separator"));
+        String separator=System.getProperty("path.separator");
+        String[] paths = library_path.split(separator);
         for (String path : paths) {
             File dir = new File(path);
             String[] found = dir.list(new FilenameFilter() {
@@ -579,8 +589,34 @@ public class CefApp extends CefAppHandlerAdapter {
                         || name.equalsIgnoreCase("jcef.dll"));
                 }
             });
-            if (found != null && found.length != 0) return path;
+            if (found != null && found.length != 0) {
+            	System.setProperty(VARIABLE, path);
+            	return path;
+            }
         }
+        
+        String path = System.getProperty("eclipse.home.location")+File.separator+VERSION;
+		if(path.startsWith("file:/")) {
+			path = path.substring(5);
+		}
+		File file = new File(path);
+		if(!file.exists()) {
+			if(file.mkdir()) {
+				library_path = file.getAbsolutePath();
+			}else {
+				file = new File(System.getProperty("user.dir")+File.separator+VERSION);
+				if(!file.exists()) {
+					if(file.mkdir()) {
+						library_path = file.getAbsolutePath();
+					}
+				}
+				
+			}
+		}else {
+			library_path = file.getAbsolutePath();
+		}
+		
+		System.setProperty(VARIABLE, library_path);
         return library_path;
     }
 
@@ -611,4 +647,15 @@ public class CefApp extends CefAppHandlerAdapter {
     private final native boolean N_RegisterSchemeHandlerFactory(
         String schemeName, String domainName, CefSchemeHandlerFactory factory);
     private final native boolean N_ClearSchemeHandlerFactories();
+    public void setEventListener(EventListener listener) {
+    	this.listener = listener;
+    }
+    
+	@Override
+	public boolean fireEvent(int type, int event, long delay_ms) {
+		if(this.listener != null) {
+			return this.listener.fireEvent(type, event);
+		}
+		return false;
+	}
 }

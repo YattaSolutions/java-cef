@@ -5,6 +5,7 @@
 package org.cef.browser;
 
 import org.cef.CefClient;
+import org.cef.EventListener;
 import org.cef.callback.CefPdfPrintCallback;
 import org.cef.callback.CefRunFileDialogCallback;
 import org.cef.callback.CefStringVisitor;
@@ -16,6 +17,7 @@ import org.cef.network.CefRequest;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
@@ -382,4 +384,8 @@ public interface CefBrowser {
      * @throws UnsupportedOperationException if not supported
      */
     public CompletableFuture<BufferedImage> createScreenshot(boolean nativeResolution);
+    
+    public void addListener(KeyListener listener);
+    
+    public void setEventListener(EventListener client);
 }

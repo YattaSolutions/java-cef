@@ -6,6 +6,7 @@ package org.cef.browser;
 
 import org.cef.CefApp;
 import org.cef.CefClient;
+import org.cef.EventListener;
 import org.cef.OS;
 import org.cef.callback.CefDragData;
 import org.cef.handler.CefRenderHandler;
@@ -21,12 +22,6 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.GLBuffers;
-
-import org.cef.CefClient;
-import org.cef.OS;
-import org.cef.callback.CefDragData;
-import org.cef.handler.CefRenderHandler;
-import org.cef.handler.CefScreenInfo;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -53,6 +48,7 @@ import java.lang.IllegalAccessException;
 import java.lang.IllegalArgumentException;
 import java.lang.NoSuchMethodException;
 import java.lang.SecurityException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -70,7 +66,7 @@ import javax.swing.SwingUtilities;
  * The visibility of this class is "package". To create a new
  * CefBrowser instance, please use CefBrowserFactory.
  */
-class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
+public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     private CefRenderer renderer_;
     private GLCanvas canvas_;
     private long window_handle_ = 0;
@@ -81,6 +77,10 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     private int depth = 32;
     private int depth_per_component = 8;
     private boolean isTransparent_;
+    private KeyEvent cacheEventPressed;
+    private KeyEvent cacheEventReleased;
+    private KeyEvent cacheTypedPressed;
+	private EventListener eventListener;
 
     CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
         this(client, url, transparent, context, null, null);
@@ -249,26 +249,43 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             @Override
             public void mousePressed(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_PRESSED, 0);
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_RELEASED, 0);
+                }
+
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_ENTERED, 0);
+                }
+
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_EXITED, 0);
+                }
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_CLICKED, 0);
+                }
             }
         });
 
@@ -276,11 +293,17 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             @Override
             public void mouseMoved(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_MOVED, 0);
+                }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
                 sendMouseEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_DRAGGED, 0);
+                }
             }
         });
 
@@ -288,23 +311,136 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 sendMouseWheelEvent(e);
+                if(eventListener != null) {
+                	eventListener.fireEvent(EventListener.MOUSE, MouseEvent.MOUSE_WHEEL, 0);
+                }
             }
         });
-
+        
         canvas_.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                sendKeyEvent(e);
+            	int keyCode =e.getKeyCode();
+            	if(keyCode == 0 && e.getKeyChar()=='\n') {
+            		//e.setKeyCode(13);
+            		try {
+            			Field declaredField = e.getClass().getDeclaredField("primaryLevelUnicode");
+            			if(declaredField != null) {
+            				declaredField.setAccessible(true);
+            				declaredField.setInt(e, 13);
+            			}
+            		}catch (Exception e2) {
+            			e2.printStackTrace();
+						// TODO: handle exception
+					}
+            		
+            		if(cacheTypedPressed != null) {
+            			cacheTypedPressed.setKeyCode(13);
+            			cacheTypedPressed.setKeyChar('\n');
+            			sendKeyEvent(cacheTypedPressed);
+            		}else {
+//            			KeyEvent newEvent = new KeyEvent(canvas_,
+//            			        KeyEvent.KEY_TYPED, System.currentTimeMillis(),
+//            			        0,
+//            			        0,(char)KeyEvent.VK_BACK_SPACE);
+//            			System.out.println(newEvent);
+            			//sendKeyEvent(newEvent);
+            			
+            			System.out.println(e);
+            			sendKeyEvent(e);
+            		}
+            	}else if(keyCode  == 10) {
+            		//keyCode = 50;
+            		//char charItem=e.getKeyChar();
+            		//charItem='2';
+            		
+            		//KeyEvent event = new java.awt.event.KeyEvent((Component) e.getSource(), java.awt.event.KeyEvent.KEY_PRESSED, (long) e.getWhen(), extractModifiers(e), keyCode, charItem, e.getKeyLocation());
+            		//System.out.println(e);
+            		//System.out.println(event);
+            		if(cacheTypedPressed != null) {
+            			sendKeyEvent(cacheTypedPressed);
+            		}else {
+            			System.out.println(e);
+            			sendKeyEvent(e);
+            		}
+            	}else if(keyCode == 50 || e.getKeyChar()=='2'){
+            		cacheTypedPressed = e;
+            		sendKeyEvent(e);
+            	}else {
+            		System.out.println(e);
+            		sendKeyEvent(e);            		
+            	}
+                //sendKeyEvent(e);
+            	if(eventListener != null) {
+            		eventListener.fireEvent(EventListener.KEYBOARD, KeyEvent.KEY_TYPED, 0);
+                }
             }
 
             @Override
             public void keyPressed(KeyEvent e) {
-                sendKeyEvent(e);
+            	int keyCode =e.getKeyCode();
+
+            	if(keyCode  == 10) {
+            		//keyCode = 50;
+            		//char charItem=e.getKeyChar();
+            		//charItem='2';
+            		
+            		//KeyEvent event = new java.awt.event.KeyEvent((Component) e.getSource(), java.awt.event.KeyEvent.KEY_PRESSED, (long) e.getWhen(), extractModifiers(e), keyCode, charItem, e.getKeyLocation());
+            		//System.out.println(e);
+            		//System.out.println(event);
+            		if(cacheEventPressed != null) {
+            			sendKeyEvent(cacheEventPressed);
+            		}else {
+            			sendKeyEvent(e);
+            		}
+            	}else if(keyCode == 50){
+            		cacheEventPressed = e;
+            		sendKeyEvent(e);
+            	}else {
+            		System.out.println(e);
+            		sendKeyEvent(e);            		
+            	}
+            	if(eventListener != null) {
+            		eventListener.fireEvent(EventListener.KEYBOARD, KeyEvent.KEY_PRESSED, 0);
+                }
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                sendKeyEvent(e);
+            	//Component component = new Component();
+            	int keyCode =e.getKeyCode();
+            	if(keyCode  == 10) {
+            		//keyCode = 50;
+            		//char charItem=e.getKeyChar();
+            		//charItem='2';
+            		
+            		//KeyEvent event = new java.awt.event.KeyEvent((Component) e.getSource(), java.awt.event.KeyEvent.KEY_PRESSED, (long) e.getWhen(), extractModifiers(e), keyCode, charItem, e.getKeyLocation());
+            		//System.out.println(e);
+            		//System.out.println(event);
+            		try {
+            			Field declaredField = e.getClass().getDeclaredField("primaryLevelUnicode");
+            			if(declaredField != null) {
+            				declaredField.setInt(e, 13);
+            			}
+            		}catch (Exception e2) {
+						// TODO: handle exception
+					}
+            		if(cacheEventReleased != null) {
+            			sendKeyEvent(cacheEventReleased);
+            		}else {
+            			sendKeyEvent(e);
+            		}
+            	}else if(keyCode == 50 || e.getKeyChar()=='2'){
+            		cacheEventReleased= e;
+            		sendKeyEvent(e);
+            	}else {
+            		System.out.println(e);
+            		sendKeyEvent(e);            		
+            	}
+            	if(eventListener != null) {
+            		eventListener.fireEvent(EventListener.KEYBOARD, KeyEvent.KEY_RELEASED, 0);
+                }
+
             }
         });
 
@@ -326,6 +462,38 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         // Connect the Canvas with a drag and drop listener.
         new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
     }
+    
+//    private int extractModifiers(java.awt.event.KeyEvent e) {
+//		int modifiers = 0; // No modifiers
+//		return e.getModifiers();
+//		if((e.stateMask & SWT.CTRL) == SWT.CTRL){
+//			modifiers |= java.awt.event.KeyEvent.CTRL_DOWN_MASK;
+//		}
+//		if((e.stateMask & SWT.ALT) == SWT.ALT){
+//			modifiers |= java.awt.event.KeyEvent.ALT_DOWN_MASK;
+//		}
+//		if((e.stateMask & SWT.ALT_GR) == SWT.ALT_GR){
+//			modifiers |= java.awt.event.KeyEvent.ALT_GRAPH_DOWN_MASK;
+//		}
+//		if((e.stateMask & SWT.COMMAND) == SWT.COMMAND){
+//			modifiers |= java.awt.event.KeyEvent.META_DOWN_MASK;
+//		}
+//		if((e.stateMask & SWT.MOD4) == SWT.MOD4){
+//			modifiers |= java.awt.event.KeyEvent.META_DOWN_MASK;
+//		}
+//		if((e.stateMask & SWT.CAPS_LOCK) == SWT.CAPS_LOCK){
+//			if((e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
+//				// modifiers cancel each other
+//			} else {
+//				modifiers |= java.awt.event.KeyEvent.SHIFT_DOWN_MASK;
+//			}
+//		} else {
+//			if((e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
+//				modifiers |= java.awt.event.KeyEvent.SHIFT_DOWN_MASK;
+//			}
+//		}
+//		return modifiers;
+//	}
 
     @Override
     public Rectangle getViewRect(CefBrowser browser) {
@@ -359,12 +527,17 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         final GLContext context = canvas_ != null ? canvas_.getContext() : null;
 
         if (context == null) {
-            return;
+            return ;
         }
 
         // This result can occur due to GLContext re-initialization when changing displays.
         if (context.makeCurrent() == GLContext.CONTEXT_NOT_CURRENT) {
-            return;
+            return  ;
+        }
+        if(this.eventListener != null) {
+        	if(this.eventListener.fireEvent(EventListener.PAINTING, EventListener.PAINTING, 0)) {
+        		return ;
+        	}
         }
 
 		renderer_.onPaint(canvas_.getGL().getGL2(), popup, dirtyRects, buffer, width, height);
@@ -591,4 +764,14 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             return future;
         }
     }
+    
+    @Override
+    public void addListener(KeyListener listener) {
+    	canvas_.addKeyListener(listener);
+    }
+
+	@Override
+	public void setEventListener(EventListener listener) {
+		this.eventListener = listener;
+	}
 }
