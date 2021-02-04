@@ -4,9 +4,9 @@
 
 package tests.junittests;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import java.util.Optional;
+
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 // Stores global test setup state for access from package classes.
 class TestSetupContext {

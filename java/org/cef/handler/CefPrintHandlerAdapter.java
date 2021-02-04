@@ -4,13 +4,13 @@
 
 package org.cef.handler;
 
+import java.awt.Dimension;
+
 import org.cef.browser.CefBrowser;
 import org.cef.callback.CefNativeAdapter;
 import org.cef.callback.CefPrintDialogCallback;
 import org.cef.callback.CefPrintJobCallback;
 import org.cef.misc.CefPrintSettings;
-
-import java.awt.Dimension;
 
 /**
  * An abstract adapter class for receiving print events on Linux.

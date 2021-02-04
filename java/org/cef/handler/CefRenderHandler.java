@@ -4,12 +4,12 @@
 
 package org.cef.handler;
 
-import org.cef.browser.CefBrowser;
-import org.cef.callback.CefDragData;
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
+
+import org.cef.browser.CefBrowser;
+import org.cef.callback.CefDragData;
 
 /**
  * Implement this interface to handle events when window rendering is disabled.

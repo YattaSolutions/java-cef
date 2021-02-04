@@ -4,17 +4,6 @@
 
 package tests.simple;
 
-import org.cef.CefApp;
-import org.cef.CefApp.CefAppState;
-import org.cef.CefClient;
-import org.cef.CefSettings;
-import org.cef.OS;
-import org.cef.browser.CefBrowser;
-import org.cef.browser.CefFrame;
-import org.cef.handler.CefAppHandlerAdapter;
-import org.cef.handler.CefDisplayHandlerAdapter;
-import org.cef.handler.CefFocusHandlerAdapter;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -27,6 +16,16 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+
+import org.cef.CefApp;
+import org.cef.CefApp.CefAppState;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.browser.CefBrowser;
+import org.cef.browser.CefFrame;
+import org.cef.handler.CefAppHandlerAdapter;
+import org.cef.handler.CefDisplayHandlerAdapter;
+import org.cef.handler.CefFocusHandlerAdapter;
 
 /**
  * This is a simple example application using JCEF.

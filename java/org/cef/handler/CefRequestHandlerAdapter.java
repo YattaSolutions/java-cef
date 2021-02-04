@@ -11,7 +11,6 @@ import org.cef.callback.CefRequestCallback;
 import org.cef.handler.CefLoadHandler.ErrorCode;
 import org.cef.misc.BoolRef;
 import org.cef.network.CefRequest;
-import org.cef.network.CefURLRequest;
 
 /**
  * An abstract adapter class for receiving browser request events.

@@ -6,14 +6,14 @@ package tests.junittests;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.cef.CefApp;
 import org.cef.CefApp.CefAppState;
 import org.cef.CefSettings;
 import org.cef.handler.CefAppHandlerAdapter;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-
-import java.util.concurrent.CountDownLatch;
 
 // All test cases must install this extension for CEF to be properly initialized
 // and shut down.

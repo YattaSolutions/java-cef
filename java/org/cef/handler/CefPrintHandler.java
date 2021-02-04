@@ -4,13 +4,13 @@
 
 package org.cef.handler;
 
+import java.awt.Dimension;
+
 import org.cef.browser.CefBrowser;
 import org.cef.callback.CefNative;
 import org.cef.callback.CefPrintDialogCallback;
 import org.cef.callback.CefPrintJobCallback;
 import org.cef.misc.CefPrintSettings;
-
-import java.awt.Dimension;
 
 /**
  * Implement this interface to handle printing on Linux. The methods of this class will be called on

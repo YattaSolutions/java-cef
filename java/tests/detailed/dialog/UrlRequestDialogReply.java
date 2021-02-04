@@ -4,13 +4,6 @@
 
 package tests.detailed.dialog;
 
-import org.cef.callback.CefAuthCallback;
-import org.cef.callback.CefURLRequestClient;
-import org.cef.network.CefRequest;
-import org.cef.network.CefResponse;
-import org.cef.network.CefURLRequest;
-import org.cef.network.CefURLRequest.Status;
-
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
@@ -28,6 +21,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+
+import org.cef.callback.CefAuthCallback;
+import org.cef.callback.CefURLRequestClient;
+import org.cef.network.CefRequest;
+import org.cef.network.CefResponse;
+import org.cef.network.CefURLRequest;
+import org.cef.network.CefURLRequest.Status;
 
 @SuppressWarnings("serial")
 public class UrlRequestDialogReply extends JDialog implements CefURLRequestClient {

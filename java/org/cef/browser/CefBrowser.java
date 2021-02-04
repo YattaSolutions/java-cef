@@ -4,6 +4,13 @@
 
 package org.cef.browser;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
+
 import org.cef.CefClient;
 import org.cef.EventListener;
 import org.cef.callback.CefPdfPrintCallback;
@@ -14,13 +21,6 @@ import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefWindowHandler;
 import org.cef.misc.CefPdfPrintSettings;
 import org.cef.network.CefRequest;
-
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
-import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface representing a browser.

@@ -4,31 +4,24 @@
 
 package tests.detailed;
 
-import org.cef.CefApp;
-import org.cef.CefApp.CefVersion;
-import org.cef.CefClient;
-import org.cef.CefSettings;
-import org.cef.CefSettings.ColorType;
-import org.cef.OS;
-import org.cef.browser.CefBrowser;
-import org.cef.browser.CefFrame;
-import org.cef.browser.CefMessageRouter;
-import org.cef.browser.CefRequestContext;
-import org.cef.handler.CefDisplayHandlerAdapter;
-import org.cef.handler.CefFocusHandlerAdapter;
-import org.cef.handler.CefLoadHandlerAdapter;
-import org.cef.handler.CefRequestContextHandlerAdapter;
-import org.cef.network.CefCookieManager;
-
 import java.awt.BorderLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.io.File;
-import java.lang.Thread.UncaughtExceptionHandler;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import org.cef.CefApp;
+import org.cef.CefApp.CefVersion;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.browser.CefBrowser;
+import org.cef.browser.CefFrame;
+import org.cef.browser.CefMessageRouter;
+import org.cef.handler.CefDisplayHandlerAdapter;
+import org.cef.handler.CefFocusHandlerAdapter;
+import org.cef.handler.CefLoadHandlerAdapter;
+import org.cef.network.CefCookieManager;
 
 import tests.detailed.dialog.DownloadDialog;
 import tests.detailed.handler.AppHandler;

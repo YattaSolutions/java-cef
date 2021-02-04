@@ -654,7 +654,7 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
 	@Override
 	public boolean fireEvent(int type, int event, long delay_ms) {
 		if(this.listener != null) {
-			return this.listener.fireEvent(type, event);
+			return this.listener.fireEvent(type, event, delay_ms);
 		}
 		return false;
 	}

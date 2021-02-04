@@ -4,6 +4,13 @@
 
 package tests.detailed.handler;
 
+import java.awt.Frame;
+import java.util.HashMap;
+import java.util.Vector;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.callback.CefAuthCallback;
@@ -17,13 +24,6 @@ import org.cef.misc.BoolRef;
 import org.cef.network.CefPostData;
 import org.cef.network.CefPostDataElement;
 import org.cef.network.CefRequest;
-
-import java.awt.Frame;
-import java.util.HashMap;
-import java.util.Vector;
-
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 import tests.detailed.dialog.CertErrorDialog;
 import tests.detailed.dialog.PasswordDialog;

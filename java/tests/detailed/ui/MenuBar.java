@@ -4,29 +4,15 @@
 
 package tests.detailed.ui;
 
-import org.cef.CefApp;
-import org.cef.CefClient;
-import org.cef.OS;
-import org.cef.browser.CefBrowser;
-import org.cef.callback.CefPdfPrintCallback;
-import org.cef.callback.CefRunFileDialogCallback;
-import org.cef.callback.CefStringVisitor;
-import org.cef.handler.CefDialogHandler.FileDialogMode;
-import org.cef.misc.CefPdfPrintSettings;
-import org.cef.network.CefCookieManager;
-import org.cef.network.CefRequest;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -43,7 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -51,6 +36,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
+
+import org.cef.OS;
+import org.cef.browser.CefBrowser;
+import org.cef.callback.CefPdfPrintCallback;
+import org.cef.callback.CefRunFileDialogCallback;
+import org.cef.callback.CefStringVisitor;
+import org.cef.handler.CefDialogHandler.FileDialogMode;
+import org.cef.misc.CefPdfPrintSettings;
+import org.cef.network.CefCookieManager;
+import org.cef.network.CefRequest;
 
 import tests.detailed.BrowserFrame;
 import tests.detailed.MainFrame;

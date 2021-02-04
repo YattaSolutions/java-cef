@@ -75,7 +75,7 @@ public class WebPluginManagerDialog extends JDialog {
         @Override
         public boolean visit(CefWebPluginInfo info, int count, int total) {
             Object[] entry = {info.getName(), info.getPath(), info.getVersion(),
-                    info.getDescription(), new Boolean(false)};
+                    info.getDescription(), Boolean.FALSE};
             int row = rowData.size();
             rowData.addElement(entry);
             fireTableRowsInserted(row, row);

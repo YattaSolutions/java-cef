@@ -4,25 +4,6 @@
 
 package org.cef.browser;
 
-import org.cef.CefApp;
-import org.cef.CefClient;
-import org.cef.EventListener;
-import org.cef.OS;
-import org.cef.callback.CefDragData;
-import org.cef.handler.CefRenderHandler;
-import org.cef.handler.CefScreenInfo;
-
-import com.jogamp.nativewindow.NativeSurface;
-import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLContext;
-import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.GLBuffers;
-
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -43,11 +24,6 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.lang.ClassNotFoundException;
-import java.lang.IllegalAccessException;
-import java.lang.IllegalArgumentException;
-import java.lang.NoSuchMethodException;
-import java.lang.SecurityException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -60,6 +36,25 @@ import java.util.concurrent.TimeoutException;
 
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
+
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.EventListener;
+import org.cef.OS;
+import org.cef.callback.CefDragData;
+import org.cef.handler.CefRenderHandler;
+import org.cef.handler.CefScreenInfo;
+
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.util.GLBuffers;
 
 /**
  * This class represents an off-screen rendered browser.

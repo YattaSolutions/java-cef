@@ -4,11 +4,11 @@
 
 package org.cef.misc;
 
-import org.cef.callback.CefNative;
-
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.Vector;
+
+import org.cef.callback.CefNative;
 
 class CefPrintSettings_N extends CefPrintSettings implements CefNative {
     // Used internally to store a pointer to the CEF object.

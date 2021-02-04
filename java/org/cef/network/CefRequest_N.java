@@ -4,9 +4,9 @@
 
 package org.cef.network;
 
-import org.cef.callback.CefNative;
-
 import java.util.Map;
+
+import org.cef.callback.CefNative;
 
 class CefRequest_N extends CefRequest implements CefNative {
     // Used internally to store a pointer to the CEF object.

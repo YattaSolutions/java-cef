@@ -4,15 +4,15 @@
 
 package tests.junittests;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 import org.cef.callback.CefCallback;
 import org.cef.handler.CefResourceHandlerAdapter;
 import org.cef.misc.IntRef;
 import org.cef.misc.StringRef;
 import org.cef.network.CefRequest;
 import org.cef.network.CefResponse;
-
-import java.nio.ByteBuffer;
-import java.util.HashMap;
 
 class TestResourceHandler extends CefResourceHandlerAdapter {
     private int offset_ = 0;

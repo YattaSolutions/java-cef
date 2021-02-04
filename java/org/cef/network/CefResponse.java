@@ -4,12 +4,12 @@
 
 package org.cef.network;
 
-import org.cef.handler.CefLoadHandler.ErrorCode;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.cef.handler.CefLoadHandler.ErrorCode;
 
 /**
  * Class used to represent a web response. The methods of this class may be

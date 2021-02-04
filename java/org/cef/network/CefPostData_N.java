@@ -4,9 +4,9 @@
 
 package org.cef.network;
 
-import org.cef.callback.CefNative;
-
 import java.util.Vector;
+
+import org.cef.callback.CefNative;
 
 /**
  *

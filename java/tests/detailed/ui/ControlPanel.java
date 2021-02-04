@@ -6,8 +6,6 @@ package tests.detailed.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -122,7 +120,7 @@ public class ControlPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 browser_.setZoomLevel(--zoomLevel_);
-                zoom_label_.setText(new Double(zoomLevel_).toString());
+                zoom_label_.setText(Double.valueOf(zoomLevel_).toString());
             }
         });
         add(minusButton);
@@ -137,7 +135,7 @@ public class ControlPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 browser_.setZoomLevel(++zoomLevel_);
-                zoom_label_.setText(new Double(zoomLevel_).toString());
+                zoom_label_.setText(Double.valueOf(zoomLevel_).toString());
             }
         });
         add(plusButton);

@@ -4,11 +4,11 @@
 
 package org.cef.browser;
 
-import com.jogamp.opengl.GL2;
-
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+
+import com.jogamp.opengl.GL2;
 
 class CefRenderer {
     private boolean transparent_;

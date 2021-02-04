@@ -4,12 +4,12 @@
 
 package org.cef.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.network.CefRequest.TransitionType;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Implement this interface to handle events related to browser load status.

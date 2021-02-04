@@ -4,11 +4,11 @@
 
 package org.cef.network;
 
+import java.util.Vector;
+
 import org.cef.callback.CefCompletionCallback;
 import org.cef.callback.CefCookieVisitor;
 import org.cef.callback.CefNative;
-
-import java.util.Vector;
 
 class CefCookieManager_N extends CefCookieManager implements CefNative {
     // Used internally to store a pointer to the CEF object.

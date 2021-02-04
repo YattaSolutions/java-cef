@@ -3,7 +3,6 @@ package tests.detailed.handler;
 import java.nio.ByteBuffer;
 
 import org.cef.callback.CefCallback;
-import org.cef.handler.CefLoadHandler;
 import org.cef.handler.CefResourceHandlerAdapter;
 import org.cef.misc.IntRef;
 import org.cef.misc.StringRef;

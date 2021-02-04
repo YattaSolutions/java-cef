@@ -4,10 +4,10 @@
 
 package org.cef.network;
 
+import java.util.Map;
+
 import org.cef.callback.CefNative;
 import org.cef.handler.CefLoadHandler.ErrorCode;
-
-import java.util.Map;
 
 class CefResponse_N extends CefResponse implements CefNative {
     // Used internally to store a pointer to the CEF object.
