@@ -94,4 +94,10 @@ public abstract class CefAppHandlerAdapter implements CefAppHandler {
     public void onScheduleMessagePumpWork(long delay_ms) {
         CefApp.getInstance().doMessageLoopWork(delay_ms);
     }
+    
+
+	@Override
+	public boolean fireEvent(int type, int event, long delay_ms) {
+		return false;
+	}
 }

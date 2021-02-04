@@ -658,4 +658,8 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
 		}
 		return false;
 	}
+	
+	public static CefAppHandler getAppHandler() {
+		return appHandler_;
+	}
 }

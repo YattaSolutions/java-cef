@@ -5,6 +5,7 @@
 package org.cef.handler;
 
 import org.cef.CefApp.CefAppState;
+import org.cef.EventListener;
 import org.cef.callback.CefCommandLine;
 import org.cef.callback.CefSchemeRegistrar;
 
@@ -12,7 +13,7 @@ import org.cef.callback.CefSchemeRegistrar;
  * Implement this interface to provide handler implementations. Methods will be
  * called by the process and/or thread indicated.
  */
-public interface CefAppHandler {
+public interface CefAppHandler extends EventListener {
     /**
      * Provides an opportunity to view and/or modify command-line arguments before
      * processing by CEF and Chromium. The |process_type| value will be empty for
