@@ -26,6 +26,7 @@ import org.cef.handler.CefClientHandler;
 import org.cef.handler.CefDialogHandler.FileDialogMode;
 import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefWindowHandler;
+import org.cef.handler.EventListener;
 import org.cef.misc.CefPdfPrintSettings;
 import org.cef.network.CefRequest;
 
@@ -46,7 +47,16 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
     private boolean closeAllowed_ = false;
     private volatile boolean isClosed_ = false;
     private volatile boolean isClosing_ = false;
+    protected EventListener eventListener;
 
+    protected CefBrowser_N(CefClient client, String url, CefRequestContext context,
+            CefBrowser_N parent) {
+        client_ = client;
+        url_ = url;
+        request_context_ = context;
+        parent_ = parent;
+    }
+    
     protected CefBrowser_N(CefClient client, String url, CefRequestContext context,
             CefBrowser_N parent, Point inspectAt) {
         client_ = client;
@@ -107,11 +117,14 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
             @Override
             public void run() {
                 // Trigger close of the parent window.
-                Component parent = SwingUtilities.getRoot(getUIComponent());
-                if (parent != null) {
-                    parent.dispatchEvent(
-                            new WindowEvent((Window) parent, WindowEvent.WINDOW_CLOSING));
-                }
+            	Object uiComponent = getUIComponent();
+            	if(uiComponent instanceof Component) {
+	                Component parent = SwingUtilities.getRoot((Component) uiComponent);
+	                if (parent != null) {
+	                    parent.dispatchEvent(
+	                            new WindowEvent((Window) parent, WindowEvent.WINDOW_CLOSING));
+	                }
+            	}
             }
         });
 
@@ -625,6 +638,54 @@ abstract class CefBrowser_N extends CefNativeAdapter implements CefBrowser {
             ule.printStackTrace();
         }
     }
+    
+    /**
+     * Send a key event.
+     * @param e The event to send.
+     */
+    protected final void sendKeyEvent(KeyEvent e, int event) {
+        try {
+            N_SendKeyEvent(e);
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        if(eventListener != null) {
+    		eventListener.fireEvent(event);
+        }
+    }
+
+    /**
+     * Send a mouse event.
+     * @param e The event to send.
+     */
+    protected final void sendMouseEvent(MouseEvent e, int event) {
+    	if(e != null) {
+	        try {
+	            N_SendMouseEvent(e);
+	        } catch (UnsatisfiedLinkError ule) {
+	            ule.printStackTrace();
+	        }
+    	}
+        if(eventListener != null) {
+    		eventListener.fireEvent(event);
+        }
+    }
+
+    /**
+     * Send a mouse wheel event.
+     * @param e The event to send.
+     */
+    protected final void sendMouseWheelEvent(MouseWheelEvent e, int event) {
+        try {
+            N_SendMouseWheelEvent(e);
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        if(eventListener != null) {
+    		eventListener.fireEvent(event);
+        }
+    }
+    
 
     /**
      * Call this method when the user drags the mouse into the web view (before

@@ -48,6 +48,7 @@ import org.cef.handler.CefRequestHandler;
 import org.cef.handler.CefResourceRequestHandler;
 import org.cef.handler.CefScreenInfo;
 import org.cef.handler.CefWindowHandler;
+import org.cef.handler.EventListener;
 import org.cef.misc.BoolRef;
 import org.cef.network.CefRequest;
 import org.cef.network.CefRequest.TransitionType;
@@ -78,7 +79,7 @@ public class CefClient extends CefClientHandler
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (focusedBrowser_ != null) {
-                Component browserUI = focusedBrowser_.getUIComponent();
+                Object browserUI = focusedBrowser_.getUIComponent();
                 Object oldUI = evt.getOldValue();
                 if (isPartOf(oldUI, browserUI)) {
                     focusedBrowser_.setFocus(false);
@@ -102,7 +103,7 @@ public class CefClient extends CefClientHandler
                 propertyChangeListener);
     }
 
-    private boolean isPartOf(Object obj, Component browserUI) {
+    private boolean isPartOf(Object obj, Object browserUI) {
         if (obj == browserUI) return true;
         if (obj instanceof Container) {
             Component childs[] = ((Container) obj).getComponents();
@@ -391,24 +392,27 @@ public class CefClient extends CefClientHandler
         if (browser == null) return;
 
         browser.setFocus(false);
-        Container parent = browser.getUIComponent().getParent();
-        if (parent != null) {
-            FocusTraversalPolicy policy = null;
-            while (parent != null) {
-                policy = parent.getFocusTraversalPolicy();
-                if (policy != null) break;
-                parent = parent.getParent();
-            }
-            if (policy != null) {
-                Component nextComp = next
-                        ? policy.getComponentAfter(parent, browser.getUIComponent())
-                        : policy.getComponentBefore(parent, browser.getUIComponent());
-                if (nextComp == null) {
-                    policy.getDefaultComponent(parent).requestFocus();
-                } else {
-                    nextComp.requestFocus();
-                }
-            }
+        Object component = browser.getUIComponent();
+        if(component instanceof Component) {
+        	Container  parent = ((Component)component).getParent();
+        	if (parent != null) {
+        		FocusTraversalPolicy policy = null;
+        		while (parent != null) {
+        			policy = parent.getFocusTraversalPolicy();
+        			if (policy != null) break;
+        			parent = parent.getParent();
+        		}
+        		if (policy != null) {
+        			Component nextComp = next
+        					? policy.getComponentAfter(parent, (Component)component)
+        							: policy.getComponentBefore(parent, (Component)component);
+        			if (nextComp == null) {
+        				policy.getDefaultComponent(parent).requestFocus();
+        			} else {
+        				nextComp.requestFocus();
+        			}
+        		}
+        	}
         }
         focusedBrowser_ = null;
         if (focusHandler_ != null) focusHandler_.onTakeFocus(browser, next);
@@ -810,10 +814,9 @@ public class CefClient extends CefClientHandler
 	}
 
 	@Override
-	public boolean fireEvent(int type, int event, long delay_ms) {
+	public void fireEvent(int event) {
 		if(listener != null) {
-			return listener.fireEvent(type, event, delay_ms);
+			listener.fireEvent(event);
 		}
-		return false;
 	}
 }

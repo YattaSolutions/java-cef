@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static tests.junittests.TestSetupContext.debugPrint;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
@@ -106,7 +107,7 @@ class TestFrame extends JFrame implements CefLifeSpanHandler, CefLoadHandler, Ce
         browser_ = client_.createBrowser(startURL, false /* useOSR */, false /* isTransparent */);
         assertNotNull(browser_);
 
-        getContentPane().add(browser_.getUIComponent(), BorderLayout.CENTER);
+        getContentPane().add((Component) browser_.getUIComponent(), BorderLayout.CENTER);
         pack();
         setSize(800, 600);
         setVisible(true);

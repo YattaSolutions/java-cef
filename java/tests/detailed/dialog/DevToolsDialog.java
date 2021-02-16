@@ -5,6 +5,7 @@
 package tests.detailed.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
@@ -29,7 +30,10 @@ public class DevToolsDialog extends JDialog {
         setLocation(owner.getLocation().x + 20, owner.getLocation().y + 20);
 
         devTools_ = browser.getDevTools(inspectAt);
-        add(devTools_.getUIComponent());
+        Object component = devTools_.getUIComponent();
+        if(component instanceof Component) {
+        	add((Component) component);
+        }
 
         addComponentListener(new ComponentAdapter() {
             @Override

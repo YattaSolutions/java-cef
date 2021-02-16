@@ -23,7 +23,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.HierarchyBoundsListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
@@ -38,10 +37,10 @@ import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 
 import org.cef.CefClient;
-import org.cef.EventListener;
 import org.cef.OS;
 import org.cef.handler.CefWindowHandler;
 import org.cef.handler.CefWindowHandlerAdapter;
+import org.cef.handler.EventListener;
 
 /**
  * This class represents a windowed rendered browser.
@@ -423,10 +422,6 @@ class CefBrowserWr extends CefBrowser_N {
     public CompletableFuture<BufferedImage> createScreenshot(boolean nativeResolution) {
         throw new UnsupportedOperationException("Unsupported for windowed rendering");
     }
-
-	@Override
-	public void addListener(KeyListener listener) {
-	}
 
 	@Override
 	public void setEventListener(EventListener client) {

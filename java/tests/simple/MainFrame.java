@@ -26,6 +26,7 @@ import org.cef.browser.CefFrame;
 import org.cef.handler.CefAppHandlerAdapter;
 import org.cef.handler.CefDisplayHandlerAdapter;
 import org.cef.handler.CefFocusHandlerAdapter;
+import org.cef.handler.DefaultAppHandler;
 
 /**
  * This is a simple example application using JCEF.
@@ -64,13 +65,7 @@ public class MainFrame extends JFrame {
         //     required native libraries, initializes CEF accordingly, starts a
         //     background task to handle CEF's message loop and takes care of
         //     shutting down CEF after disposing it.
-        CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
-            @Override
-            public void stateHasChanged(org.cef.CefApp.CefAppState state) {
-                // Shutdown the app if the native CEF part is terminated
-                if (state == CefAppState.TERMINATED) System.exit(0);
-            }
-        });
+        CefApp.addAppHandler(new DefaultAppHandler());
         CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = useOSR;
         cefApp_ = CefApp.getInstance(settings);
@@ -104,7 +99,7 @@ public class MainFrame extends JFrame {
         //     The UI component is inherited from a java.awt.Component and therefore
         //     it can be embedded into any AWT UI.
         browser_ = client_.createBrowser(startURL, useOSR, isTransparent);
-        browerUI_ = browser_.getUIComponent();
+        browerUI_ = (Component) browser_.getUIComponent();
 
         // (4) For this minimal browser, we need only a text field to enter an URL
         //     we want to navigate to and a CefBrowser window to display the content

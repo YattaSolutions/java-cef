@@ -4,6 +4,7 @@
 
 package tests.detailed;
 
+import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -125,10 +126,13 @@ public class BrowserFrame extends JFrame {
     public void removeBrowser(Runnable r) {
         System.out.println("BrowserFrame.removeBrowser");
         afterParentChangedAction_ = r;
-        remove(browser_.getUIComponent());
-        // The removeNotify() notification should be sent as a result of calling remove().
-        // However, it isn't in all cases so we do it manually here.
-        browser_.getUIComponent().removeNotify();
+        Object uiComponent = browser_.getUIComponent();
+        if(uiComponent instanceof Component) {
+	        remove((Component) uiComponent);
+	        // The removeNotify() notification should be sent as a result of calling remove().
+	        // However, it isn't in all cases so we do it manually here.
+	        ((Component) uiComponent).removeNotify();
+        }
         browser_ = null;
     }
 

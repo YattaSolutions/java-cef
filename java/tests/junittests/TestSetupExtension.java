@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import org.cef.CefApp;
 import org.cef.CefApp.CefAppState;
 import org.cef.CefSettings;
-import org.cef.handler.CefAppHandlerAdapter;
+import org.cef.handler.DefaultAppHandler;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -57,7 +57,7 @@ public class TestSetupExtension
             return;
         }
 
-        CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
+        CefApp.addAppHandler(new DefaultAppHandler() {
             @Override
             public void stateHasChanged(org.cef.CefApp.CefAppState state) {
                 if (state == CefAppState.TERMINATED) {

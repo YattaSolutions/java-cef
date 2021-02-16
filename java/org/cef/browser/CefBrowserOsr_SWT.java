@@ -4,38 +4,17 @@
 
 package org.cef.browser;
 
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.dnd.DropTarget;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.swing.MenuSelectionManager;
-import javax.swing.SwingUtilities;
-
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.OS;
@@ -43,6 +22,21 @@ import org.cef.callback.CefDragData;
 import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefScreenInfo;
 import org.cef.handler.EventListener;
+import org.cef.util.SWTEvent;
+import org.cef.util.SWTUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GL;
@@ -52,38 +46,44 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.util.GLBuffers;
+
+import jogamp.graph.geom.plane.AffineTransform;
 
 /**
  * This class represents an off-screen rendered browser.
  * The visibility of this class is "package". To create a new
  * CefBrowser instance, please use CefBrowserFactory.
  */
-public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
+public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler {
     private CefRenderer renderer_;
     private GLCanvas canvas_;
     private long window_handle_ = 0;
     private boolean justCreated_ = false;
-    private Rectangle browser_rect_ = new Rectangle(0, 0, 1, 1); // Work around CEF issue #1437.
+    private java.awt.Rectangle browser_rect_ = new java.awt.Rectangle(0, 0, 1, 1); // Work around CEF issue #1437.
     private Point screenPoint_ = new Point(0, 0);
-    private double scaleFactor_ = 1.0;
+    private float scaleFactor_ = 1.0f;
     private int depth = 32;
     private int depth_per_component = 8;
     private boolean isTransparent_;
-    private KeyEvent cacheEventPressed;
-    private KeyEvent cacheEventReleased;
-    private KeyEvent cacheTypedPressed;
-	private EventListener eventListener;
+	private Composite parentComponent;
+	private java.awt.Point inspectAt_;
 
-    CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
-        this(client, url, transparent, context, null, null);
+	CefBrowserOsr_SWT(CefClient client, String url, boolean transparent, CefRequestContext context, Composite parentComponent) {
+        this(client, url, transparent, context, parentComponent, null, parentComponent);
     }
 
-    private CefBrowserOsr(CefClient client, String url, boolean transparent,
-            CefRequestContext context, CefBrowserOsr parent, Point inspectAt) {
-        super(client, url, context, parent, inspectAt);
+    private CefBrowserOsr_SWT(CefClient client, String url, boolean transparent,
+            CefRequestContext context, Composite parentComponent, CefBrowserOsr_SWT parent, Object inspectAt) {
+        super(client, url, context, parent);
         isTransparent_ = transparent;
+        this.parentComponent = parentComponent;
+        
+        if(inspectAt instanceof java.awt.Point) {
+        	java.awt.Point guiPoint = (java.awt.Point) inspectAt;
+        	this.inspectAt_ = new java.awt.Point(guiPoint.x, guiPoint.y);
+        }
         renderer_ = new CefRenderer(transparent);
         createGLCanvas();
     }
@@ -96,7 +96,7 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     }
 
     @Override
-    public Component getUIComponent() {
+    public Object getUIComponent() {
         return canvas_;
     }
 
@@ -107,9 +107,9 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
     @Override
     protected CefBrowser_N createDevToolsBrowser(CefClient client, String url,
-            CefRequestContext context, CefBrowser_N parent, Point inspectAt) {
-        return new CefBrowserOsr(
-                client, url, isTransparent_, context, (CefBrowserOsr) this, inspectAt);
+            CefRequestContext context, CefBrowser_N parent, java.awt.Point inspectAt) {
+        return new CefBrowserOsr_SWT(
+                client, url, isTransparent_, context, this.parentComponent, (CefBrowserOsr_SWT) this, inspectAt);
     }
 
     private synchronized long getWindowHandle() {
@@ -129,264 +129,208 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     private void createGLCanvas() {
         GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
         GLCapabilities glcapabilities = new GLCapabilities(glprofile);
-        canvas_ = new GLCanvas(glcapabilities) {
-            private Method scaleFactorAccessor = null;
-            private boolean removed_ = true;
+//        canvas_ = new GLCanvas(this.parentComponent, SWT.EMBEDDED | SWT.NO_BACKGROUND);
+        canvas_ = new GLCanvas(this.parentComponent, SWT.EMBEDDED | SWT.NO_BACKGROUND, glcapabilities, null);
+        canvas_.setLayout(new FillLayout());
+        canvas_.addPaintListener(new PaintListener() {
+			@Override
+			public void paintControl(PaintEvent arg0) {
+				createBrowserIfRequired(true);
+			}
+		});
+        
+//            private Method scaleFactorAccessor = null;
+//            private boolean removed_ = true;
 
-            @Override
-            public void paint(Graphics g) {
-                createBrowserIfRequired(true);
-                if (g instanceof Graphics2D) {
-                    GraphicsConfiguration config = ((Graphics2D) g).getDeviceConfiguration();
-                    depth = config.getColorModel().getPixelSize();
-                    depth_per_component = config.getColorModel().getComponentSize()[0];
+//FXIME SL            @Override
+//            public void paint(Graphics g) {
+//                createBrowserIfRequired(true);
+//                if (g instanceof Graphics2D) {
+//                    GraphicsConfiguration config = ((Graphics2D) g).getDeviceConfiguration();
+//                    depth = config.getColorModel().getPixelSize();
+//                    depth_per_component = config.getColorModel().getComponentSize()[0];
+//
+//                    if (OS.isMacintosh()
+//                            && System.getProperty("java.runtime.version").startsWith("1.8")) {
+//                        // This fixes a weird thing on MacOS: the scale factor being read from
+//                        // getTransform().getScaleX() is incorrect for Java 8 VMs; it is always
+//                        // 1, even though Retina display scaling of window sizes etc. is
+//                        // definitely ongoing somewhere in the lower levels of AWT. This isn't
+//                        // too big of a problem for us, because the transparent scaling handles
+//                        // the situation, except for one thing: the screenshot-grabbing
+//                        // code below, which reads from the OpenGL context, must know the real
+//                        // scale factor, because the image to be read is larger by that factor
+//                        // and thus a bigger buffer is required. This is why there's some
+//                        // admittedly-ugly reflection magic going on below that's able to get
+//                        // the real scale factor.
+//                        // All of this is not relevant for either Windows or MacOS JDKs > 8,
+//                        // for which the official "getScaleX()" approach works fine.
+//                        try {
+//                            if (scaleFactorAccessor == null) {
+//                                scaleFactorAccessor = getClass()
+//                                                              .getClassLoader()
+//                                                              .loadClass("sun.awt.CGraphicsDevice")
+//                                                              .getDeclaredMethod("getScaleFactor");
+//                            }
+//                            Object factor = scaleFactorAccessor.invoke(config.getDevice());
+//                            if (factor instanceof Integer) {
+//                                scaleFactor_ = ((Integer) factor).doubleValue();
+//                            } else {
+//                                scaleFactor_ = 1.0;
+//                            }
+//                        } catch (InvocationTargetException | IllegalAccessException
+//                                | IllegalArgumentException | NoSuchMethodException
+//                                | SecurityException | ClassNotFoundException exc) {
+//                            scaleFactor_ = 1.0;
+//                        }
+//                    } else {
+//                        scaleFactor_ = ((Graphics2D) g).getTransform().getScaleX();
+//                    }
+//                }
+//                super.paint(g);
+//            }
+        
+//        @Override
+//        public void addNotify() {
+//            super.addNotify();
+//            if (removed_) {
+//                notifyAfterParentChanged();
+//                removed_ = false;
+//            }
+//        }
+//
+//        @Override
+//        public void removeNotify() {
+//            if (!removed_) {
+//                if (!isClosed()) {
+//                    notifyAfterParentChanged();
+//                }
+//                removed_ = true;
+//            }
+//            super.removeNotify();
+//        }
 
-                    if (OS.isMacintosh()
-                            && System.getProperty("java.runtime.version").startsWith("1.8")) {
-                        // This fixes a weird thing on MacOS: the scale factor being read from
-                        // getTransform().getScaleX() is incorrect for Java 8 VMs; it is always
-                        // 1, even though Retina display scaling of window sizes etc. is
-                        // definitely ongoing somewhere in the lower levels of AWT. This isn't
-                        // too big of a problem for us, because the transparent scaling handles
-                        // the situation, except for one thing: the screenshot-grabbing
-                        // code below, which reads from the OpenGL context, must know the real
-                        // scale factor, because the image to be read is larger by that factor
-                        // and thus a bigger buffer is required. This is why there's some
-                        // admittedly-ugly reflection magic going on below that's able to get
-                        // the real scale factor.
-                        // All of this is not relevant for either Windows or MacOS JDKs > 8,
-                        // for which the official "getScaleX()" approach works fine.
-                        try {
-                            if (scaleFactorAccessor == null) {
-                                scaleFactorAccessor = getClass()
-                                                              .getClassLoader()
-                                                              .loadClass("sun.awt.CGraphicsDevice")
-                                                              .getDeclaredMethod("getScaleFactor");
-                            }
-                            Object factor = scaleFactorAccessor.invoke(config.getDevice());
-                            if (factor instanceof Integer) {
-                                scaleFactor_ = ((Integer) factor).doubleValue();
-                            } else {
-                                scaleFactor_ = 1.0;
-                            }
-                        } catch (InvocationTargetException | IllegalAccessException
-                                | IllegalArgumentException | NoSuchMethodException
-                                | SecurityException | ClassNotFoundException exc) {
-                            scaleFactor_ = 1.0;
-                        }
-                    } else {
-                        scaleFactor_ = ((Graphics2D) g).getTransform().getScaleX();
-                    }
-                }
-                super.paint(g);
-            }
+//
 
-            @Override
-            public void addNotify() {
-                super.addNotify();
-                if (removed_) {
-                    notifyAfterParentChanged();
-                    removed_ = false;
-                }
-            }
-
-            @Override
-            public void removeNotify() {
-                if (!removed_) {
-                    if (!isClosed()) {
-                        notifyAfterParentChanged();
-                    }
-                    removed_ = true;
-                }
-                super.removeNotify();
-            }
-        };
+//        };
 
         // The GLContext will be re-initialized when changing displays, resulting in calls to
         // dispose/init/reshape.
         canvas_.addGLEventListener(new GLEventListener() {
-            @Override
-            public void reshape(
-                    GLAutoDrawable glautodrawable, int x, int y, int width, int height) {
-                int newWidth = width;
-                int newHeight = height;
-                if (OS.isMacintosh()) {
-                    // HiDPI display scale correction support code
-                    // For some reason this does seem to be necessary on MacOS only.
-                    // If doing this correction on Windows, the browser content would be too
-                    // small and in the lower left corner of the canvas only.
-                    newWidth = (int) (width / scaleFactor_);
-                    newHeight = (int) (height / scaleFactor_);
-                }
-                browser_rect_.setBounds(x, y, newWidth, newHeight);
-                screenPoint_ = canvas_.getLocationOnScreen();
-                wasResized(newWidth, newHeight);
-            }
-
-            @Override
-            public void init(GLAutoDrawable glautodrawable) {
-                renderer_.initialize(glautodrawable.getGL().getGL2());
-            }
-
-            @Override
-            public void dispose(GLAutoDrawable glautodrawable) {
-                renderer_.cleanup(glautodrawable.getGL().getGL2());
-            }
-
-            @Override
-            public void display(GLAutoDrawable glautodrawable) {
-                renderer_.render(glautodrawable.getGL().getGL2());
-            }
-        });
-
-        canvas_.addMouseListener(new MouseListener() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_PRESSED);
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_RELEASED);
-                }
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_ENTERED);
-                }
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_EXITED);
-                }
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_CLICKED);
-                }
-            }
-        });
-
-        canvas_.addMouseMotionListener(new MouseMotionListener() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_MOVED);
-                }
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                sendMouseEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_DRAGGED);
-                }
-            }
-        });
-
-        canvas_.addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                sendMouseWheelEvent(e);
-                if(eventListener != null) {
-                	eventListener.fireEvent(MouseEvent.MOUSE_WHEEL);
-                }
-            }
+			@Override
+			public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+			  int newWidth = width;
+               int newHeight = height;
+               if (OS.isMacintosh()) {
+                   // HiDPI display scale correction support code
+                   // For some reason this does seem to be necessary on MacOS only.
+                   // If doing this correction on Windows, the browser content would be too
+                   // small and in the lower left corner of the canvas only.
+                   newWidth = (int) (width / scaleFactor_);
+                   newHeight = (int) (height / scaleFactor_);
+               }
+               browser_rect_.setBounds(x, y, newWidth, newHeight);
+//               org.eclipse.swt.graphics.Point display = canvas_.toDisplay(1, 1);
+               org.eclipse.swt.graphics.Point display = canvas_.getLocation();
+               screenPoint_ = new Point(display.x+ canvas_.getSize().x, display.y + canvas_.getSize().y);
+               wasResized(newWidth, newHeight);				
+			}
+			
+			@Override
+			public void init(GLAutoDrawable drawable) {
+              renderer_.initialize(drawable.getGL().getGL2());
+			}
+			
+			@Override
+			public void dispose(GLAutoDrawable drawable) {
+				renderer_.cleanup(drawable.getGL().getGL2());
+			}
+			
+			@Override
+			public void display(GLAutoDrawable drawable) {
+              renderer_.render(drawable.getGL().getGL2());
+			}
         });
         
+        
+        canvas_.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseUp(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_RELEASED), SWTEvent.MOUSE_RELEASED);
+			}
+			@Override
+			public void mouseDown(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_PRESSED), SWTEvent.MOUSE_PRESSED);
+			}
+			@Override
+			public void mouseDoubleClick(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_CLICKED), SWTEvent.MOUSE_PRESSED);
+			}
+		});
+        
+        canvas_.addMouseMoveListener( e ->{
+			sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_MOVED), SWTEvent.MOUSE_MOVED);
+		});
+        
+        canvas_.addMouseWheelListener(e -> {
+			sendMouseWheelEvent(SWTUtils.toAwtMouseWheelEvent(e), SWTEvent.MOUSE_WHEEL);
+		});
+        
+        canvas_.addMouseTrackListener(new MouseTrackListener() {
+			@Override
+			public void mouseHover(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_ENTERED), SWTEvent.MOUSE_ENTERED);
+			}
+			
+			@Override
+			public void mouseExit(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_EXITED), SWTEvent.MOUSE_EXITED);
+			}
+			
+			@Override
+			public void mouseEnter(org.eclipse.swt.events.MouseEvent e) {
+				sendMouseEvent(SWTUtils.toAwtMouseEvent(e, MouseEvent.MOUSE_ENTERED), SWTEvent.MOUSE_ENTERED);
+			}
+		});
+        
         canvas_.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-            	sendKeyEvent(e,KeyEvent.KEY_TYPED);
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-            	sendKeyEvent(e,KeyEvent.KEY_PRESSED);
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-            	sendKeyEvent(e,KeyEvent.KEY_RELEASED);
-            }
-        });
-
-        canvas_.setFocusable(true);
+			@Override
+			public void keyReleased(KeyEvent e) {
+				sendKeyEvent(SWTUtils.toAwtKeyEvent(e), SWTEvent.KEY_RELEASED);
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				sendKeyEvent(SWTUtils.toAwtKeyEvent(e), SWTEvent.KEY_PRESSED);
+			}
+		});
+        
         canvas_.addFocusListener(new FocusListener() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                setFocus(false);
-            }
-
-            @Override
-            public void focusGained(FocusEvent e) {
-                // Dismiss any Java menus that are currently displayed.
-                MenuSelectionManager.defaultManager().clearSelectedPath();
-                setFocus(true);
-            }
-        });
+			@Override
+			public void focusLost(FocusEvent e) {
+				setFocus(false);
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// Dismiss any Java menus that are currently displayed.
+				MenuSelectionManager.defaultManager().clearSelectedPath();
+				setFocus(true);
+			}
+		});
 
         // Connect the Canvas with a drag and drop listener.
-        new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
+//FIME SL        new DropTarget(canvas_, new CefDropTargetListenerOsr(this));
     }
     
-//    private int extractModifiers(java.awt.event.KeyEvent e) {
-//		int modifiers = 0; // No modifiers
-//		return e.getModifiers();
-//		if((e.stateMask & SWT.CTRL) == SWT.CTRL){
-//			modifiers |= java.awt.event.KeyEvent.CTRL_DOWN_MASK;
-//		}
-//		if((e.stateMask & SWT.ALT) == SWT.ALT){
-//			modifiers |= java.awt.event.KeyEvent.ALT_DOWN_MASK;
-//		}
-//		if((e.stateMask & SWT.ALT_GR) == SWT.ALT_GR){
-//			modifiers |= java.awt.event.KeyEvent.ALT_GRAPH_DOWN_MASK;
-//		}
-//		if((e.stateMask & SWT.COMMAND) == SWT.COMMAND){
-//			modifiers |= java.awt.event.KeyEvent.META_DOWN_MASK;
-//		}
-//		if((e.stateMask & SWT.MOD4) == SWT.MOD4){
-//			modifiers |= java.awt.event.KeyEvent.META_DOWN_MASK;
-//		}
-//		if((e.stateMask & SWT.CAPS_LOCK) == SWT.CAPS_LOCK){
-//			if((e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
-//				// modifiers cancel each other
-//			} else {
-//				modifiers |= java.awt.event.KeyEvent.SHIFT_DOWN_MASK;
-//			}
-//		} else {
-//			if((e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
-//				modifiers |= java.awt.event.KeyEvent.SHIFT_DOWN_MASK;
-//			}
-//		}
-//		return modifiers;
-//	}
-
     @Override
-    public Rectangle getViewRect(CefBrowser browser) {
+    public java.awt.Rectangle getViewRect(CefBrowser browser) {
         return browser_rect_;
     }
 
     @Override
     public Point getScreenPoint(CefBrowser browser, Point viewPoint) {
-        Point screenPoint = new Point(screenPoint_);
+    	Point screenPoint = new Point(screenPoint_.x, screenPoint_.y);
         screenPoint.translate(viewPoint.x, viewPoint.y);
         return screenPoint;
     }
@@ -405,7 +349,7 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     }
 
     @Override
-    public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects,
+    public void onPaint(CefBrowser browser, boolean popup, java.awt.Rectangle[] dirtyRects,
             ByteBuffer buffer, int width, int height) {
         // if window is closing, canvas_ or opengl context could be null
         final GLContext context = canvas_ != null ? canvas_.getContext() : null;
@@ -433,12 +377,7 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
     @Override
     public boolean onCursorChange(CefBrowser browser, final int cursorType) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                canvas_.setCursor(new Cursor(cursorType));
-            }
-        });
-
+    	canvas_.setCursor(new Cursor(Display.getCurrent( ), SWTUtils.toSWTCursorEvent(cursorType)));
         // OSR always handles the cursor change.
         return true;
     }
@@ -463,10 +402,9 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         if (getNativeRef("CefBrowser") == 0) {
             if (getParentBrowser() != null) {
                 createDevTools(getParentBrowser(), getClient(), windowHandle, true, isTransparent_,
-                        null, getInspectAt());
+                        null, inspectAt_);
             } else {
-                createBrowser(getClient(), windowHandle, getUrl(), true, isTransparent_, null,
-                        getRequestContext());
+                createBrowser(getClient(), windowHandle, getUrl(), true, isTransparent_, null, getRequestContext());
             }
         } else if (hasParent && justCreated_) {
             notifyAfterParentChanged();
@@ -481,18 +419,21 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         getClient().onAfterParentChanged(this);
     }
 
+	private Rectangle getBounds() {
+		return new Rectangle(browser_rect_.x, browser_rect_.y, browser_rect_.width, browser_rect_.height);
+	}
+    
     @Override
     public boolean getScreenInfo(CefBrowser browser, CefScreenInfo screenInfo) {
-        screenInfo.Set(scaleFactor_, depth, depth_per_component, false, browser_rect_.getBounds(),
-                browser_rect_.getBounds());
+        screenInfo.Set(scaleFactor_, depth, depth_per_component, false, getBounds(), getBounds());
 
         return true;
     }
 
     @Override
     public CompletableFuture<BufferedImage> createScreenshot(boolean nativeResolution) {
-        int width = (int) (canvas_.getWidth() * scaleFactor_);
-        int height = (int) (canvas_.getHeight() * scaleFactor_);
+        int width = (int) (canvas_.getSize().x * scaleFactor_);
+        int height = (int) (canvas_.getSize().y * scaleFactor_);
 
         // In order to grab a screenshot of the browser window, we need to get the OpenGL internals
         // from the GLCanvas that displays the browser.
@@ -562,10 +503,11 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
                                     (int) (screenshot.getHeight() / scaleFactor_),
                                     BufferedImage.TYPE_INT_ARGB);
                     AffineTransform tempTransform = new AffineTransform();
-                    tempTransform.scale(1.0 / scaleFactor_, 1.0 / scaleFactor_);
-                    AffineTransformOp tempScaleOperation =
-                            new AffineTransformOp(tempTransform, AffineTransformOp.TYPE_BILINEAR);
-                    resized = tempScaleOperation.filter(screenshot, resized);
+//                    java.awt.AffineTransform
+                    tempTransform.setToScale(1.0f / scaleFactor_, 1.0f / scaleFactor_);
+//FIXME SL                    AffineTransformOp tempScaleOperation =
+//                            new AffineTransformOp(tempTransform, AffineTransformOp.TYPE_BILINEAR);
+//                    resized = tempScaleOperation.filter(screenshot, resized);
                     return resized;
                 } else {
                     return screenshot;
@@ -641,13 +583,13 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
             // This repaint triggers an indirect call to the listeners' display method above, which
             // ultimately completes the future that we return immediately.
-            canvas_.repaint();
+//SL FIXME            canvas_.repaint();
 
             return future;
         }
     }
     
-	@Override
+    @Override
 	public void setEventListener(EventListener listener) {
 		this.eventListener = listener;
 	}

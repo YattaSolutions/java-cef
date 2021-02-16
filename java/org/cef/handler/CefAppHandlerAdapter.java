@@ -17,6 +17,9 @@ import org.cef.callback.CefSchemeRegistrar;
 public abstract class CefAppHandlerAdapter implements CefAppHandler {
     private String[] args_;
 
+    public CefAppHandlerAdapter() {
+    	
+    }
     public CefAppHandlerAdapter(String[] args) {
         args_ = args;
     }
@@ -94,10 +97,4 @@ public abstract class CefAppHandlerAdapter implements CefAppHandler {
     public void onScheduleMessagePumpWork(long delay_ms) {
         CefApp.getInstance().doMessageLoopWork(delay_ms);
     }
-    
-
-	@Override
-	public boolean fireEvent(int type, int event, long delay_ms) {
-		return false;
-	}
 }

@@ -12,9 +12,10 @@ import org.cef.callback.CefSchemeHandlerFactory;
 import org.cef.callback.CefSchemeRegistrar;
 import org.cef.handler.CefAppHandlerAdapter;
 import org.cef.handler.CefResourceHandler;
+import org.cef.handler.DefaultAppHandler;
 import org.cef.network.CefRequest;
 
-public class AppHandler extends CefAppHandlerAdapter {
+public class AppHandler extends DefaultAppHandler {
     // We're registering our own schemes to demonstrate how to use
     // CefAppHandler.onRegisterCustomSchemes() in combination with
     // CefApp.registerSchemeHandlerFactory().
@@ -70,11 +71,5 @@ public class AppHandler extends CefAppHandlerAdapter {
                 return new ClientSchemeHandler();
             return null;
         }
-    }
-
-    @Override
-    public void stateHasChanged(CefAppState state) {
-        System.out.println("AppHandler.stateHasChanged: " + state);
-        if (state == CefAppState.TERMINATED) System.exit(0);
     }
 }

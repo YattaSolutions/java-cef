@@ -5,7 +5,6 @@
 package org.cef.handler;
 
 import org.cef.CefApp.CefAppState;
-import org.cef.EventListener;
 import org.cef.callback.CefCommandLine;
 import org.cef.callback.CefSchemeRegistrar;
 

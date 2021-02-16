@@ -20,6 +20,7 @@ import org.cef.handler.CefAppHandler;
 import org.cef.handler.CefAppHandlerAdapter;
 import org.cef.handler.CefGuiHandler;
 import org.cef.handler.CefGuiHandlerAdapter;
+import org.cef.handler.EventListener;
 
 /**
  * Exposes static methods for managing the global CEF context.
@@ -652,11 +653,10 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
     }
     
 	@Override
-	public boolean fireEvent(int type, int event, long delay_ms) {
+	public void fireEvent(int event) {
 		if(this.listener != null) {
-			return this.listener.fireEvent(type, event, delay_ms);
+			this.listener.fireEvent(event);
 		}
-		return false;
 	}
 	
 	public static CefAppHandler getAppHandler() {
