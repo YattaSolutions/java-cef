@@ -47,7 +47,7 @@ import org.cef.handler.EventListener;
  * The visibility of this class is "package". To create a new
  * CefBrowser instance, please use CefBrowserFactory.
  */
-class CefBrowserWr extends CefBrowser_N {
+public class CefBrowserWr extends CefBrowser_N {
     private Canvas canvas_ = null;
     private Component component_ = null;
     private Rectangle content_rect_ = new Rectangle(0, 0, 0, 0);
@@ -167,12 +167,12 @@ class CefBrowserWr extends CefBrowser_N {
         }
     };
 
-    CefBrowserWr(CefClient client, String url, CefRequestContext context) {
+    public CefBrowserWr(CefClient client, String url, CefRequestContext context) {
         this(client, url, context, null, null);
     }
 
     @SuppressWarnings("serial")
-    private CefBrowserWr(CefClient client, String url, CefRequestContext context,
+    public CefBrowserWr(CefClient client, String url, CefRequestContext context,
             CefBrowserWr parent, Point inspectAt) {
         super(client, url, context, parent, inspectAt);
         delayedUpdate_.setRepeats(false);
@@ -319,7 +319,7 @@ class CefBrowserWr extends CefBrowser_N {
     @Override
     protected CefBrowser_N createDevToolsBrowser(CefClient client, String url,
             CefRequestContext context, CefBrowser_N parent, Point inspectAt) {
-        return new CefBrowserWr(client, url, context, (CefBrowserWr) this, inspectAt);
+        return new CefBrowserWr(client, url, context, this, inspectAt);
     }
 
     private synchronized long getWindowHandle() {

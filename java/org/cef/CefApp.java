@@ -348,7 +348,11 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
             case INITIALIZING:
             case INITIALIZED:
                 CefClient client = new CefClient();
-                client.setEventListener(this);
+                if(this.listener != null) {
+                	client.setEventListener(this.listener);
+                }else {
+                	client.setEventListener(this);
+                }
                 clients_.add(client);
                 return client;
 

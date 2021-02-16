@@ -76,7 +76,7 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
     private KeyEvent cacheTypedPressed;
 	private EventListener eventListener;
 
-    CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
+    public CefBrowserOsr(CefClient client, String url, boolean transparent, CefRequestContext context) {
         this(client, url, transparent, context, null, null);
     }
 

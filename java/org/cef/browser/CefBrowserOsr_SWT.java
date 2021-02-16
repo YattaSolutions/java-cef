@@ -70,11 +70,11 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 	private Composite parentComponent;
 	private java.awt.Point inspectAt_;
 
-	CefBrowserOsr_SWT(CefClient client, String url, boolean transparent, CefRequestContext context, Composite parentComponent) {
+	public CefBrowserOsr_SWT(CefClient client, String url, boolean transparent, CefRequestContext context, Composite parentComponent) {
         this(client, url, transparent, context, parentComponent, null, parentComponent);
     }
 
-    private CefBrowserOsr_SWT(CefClient client, String url, boolean transparent,
+	public CefBrowserOsr_SWT(CefClient client, String url, boolean transparent,
             CefRequestContext context, Composite parentComponent, CefBrowserOsr_SWT parent, Object inspectAt) {
         super(client, url, context, parent);
         isTransparent_ = transparent;

@@ -75,6 +75,7 @@ public class CefClient extends CefClientHandler
     private CefRequestHandler requestHandler_ = null;
     private boolean isDisposed_ = false;
     private volatile CefBrowser focusedBrowser_ = null;
+    private CefBrowserFactory factory;
     private final PropertyChangeListener propertyChangeListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
@@ -131,7 +132,10 @@ public class CefClient extends CefClientHandler
             CefRequestContext context) {
         if (isDisposed_)
             throw new IllegalStateException("Can't create browser. CefClient is disposed");
-        return CefBrowserFactory.create(this, url, isOffscreenRendered, isTransparent, context);
+        if(factory == null) {
+        	factory = new CefBrowserFactory();
+        }
+        return factory.create(this, url, isOffscreenRendered, isTransparent, context);
     }
 
     @Override
@@ -813,6 +817,10 @@ public class CefClient extends CefClientHandler
 		this.listener = listener;
 	}
 
+	public void setFactory(CefBrowserFactory factory) {
+		this.factory = factory;
+	}
+	
 	@Override
 	public void fireEvent(int event) {
 		if(listener != null) {
