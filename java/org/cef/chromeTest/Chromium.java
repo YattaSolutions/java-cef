@@ -67,10 +67,10 @@ public class Chromium implements Browser{
 			SystemBootstrap.setLoader(new ResourceLoaderForLinux());
 //			JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
 		}
-//		if(OS.isMacintosh()) {
-//			SystemBootstrap.setLoader(new ResourceLoaderForMacintosh());
+		if(OS.isMacintosh()) {
+			SystemBootstrap.setLoader(new ResourceLoaderForMacintosh());
 //			//JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
-//		}
+		}
 	}
 
 	@Override
