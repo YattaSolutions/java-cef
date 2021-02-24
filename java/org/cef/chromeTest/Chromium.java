@@ -3,9 +3,7 @@ package org.cef.chromeTest;
 import static org.cef.callback.CefMenuModel.MenuId.MENU_ID_USER_LAST;
 
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Frame;
 import java.util.Base64;
 import java.util.HashMap;
@@ -13,9 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.swing.JApplet;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
 
 import org.cef.CefApp;
 import org.cef.CefClient;
