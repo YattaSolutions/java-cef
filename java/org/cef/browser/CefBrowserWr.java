@@ -323,6 +323,7 @@ public class CefBrowserWr extends CefBrowser_N {
     }
 
     private synchronized long getWindowHandle() {
+    	System.out.println("getWindowHandle");
         if (window_handle_ == 0 && OS.isMacintosh()) {
             window_handle_ = getWindowHandle(component_);
         }

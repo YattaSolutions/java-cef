@@ -1,15 +1,11 @@
 package org.cef.chromeTest;
 
 import java.awt.EventQueue;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.cef.CefApp;
-import org.cef.CefSettings;
 import org.cef.OS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -31,13 +27,8 @@ public class SWT_Chrome_WR {
 			System.setProperty("eclipse.home.location", "/Users/teamumbrella/eclipse/java-2020-12/Eclipse.app/Contents/Eclipse/");
 		}
 		
-		//new Button(shell, SWT.NO_BACKGROUND).setText("Hallo");
-		
-		
 		final Composite composite = new Composite(shell, SWT.EMBEDDED | SWT.NO_BACKGROUND);
 	    composite.setLayout(new FillLayout());
-		//Composite c1 = new Composite(shell, SWT.EMBEDDED);
-		composite.setBackground(new org.eclipse.swt.graphics.Color(Display.getCurrent(), 255,0,0));
         ChromiumBrowser browser = new ChromiumBrowser();
         
         
@@ -46,7 +37,7 @@ public class SWT_Chrome_WR {
         
         
         // Split between OSR and Window
-        WebBrowserFactory.osr = true;
+        WebBrowserFactory.osr = false;
         CefApp.addGuiHandler(new CefGuiHandlerForOsr());
         if(args!= null && args.length>0 ) {
         	System.out.println("Parameter 0 ? "+ args[0]+ " can be \"wr\"");

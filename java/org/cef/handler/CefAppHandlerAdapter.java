@@ -23,6 +23,7 @@ public abstract class CefAppHandlerAdapter implements CefAppHandler {
 
     @Override
     public void onBeforeCommandLineProcessing(String process_type, CefCommandLine command_line) {
+    	System.out.println("CefAppHandlerAdapter:onBeforeCommandLineProcessing");
         if (process_type.isEmpty() && args_ != null) {
             // Forward switches and arguments from Java to Cef
             boolean parseSwitchesDone = false;
@@ -70,33 +71,39 @@ public abstract class CefAppHandlerAdapter implements CefAppHandler {
 
     @Override
     public boolean onBeforeTerminate() {
+    	System.out.println("CefAppHandlerAdapter:onBeforeTerminate");
         // The default implementation does nothing
         return false;
     }
 
     @Override
     public void stateHasChanged(CefAppState state) {
+    	System.out.println("CefAppHandlerAdapter:stateHasChanged: "+state);
         // The default implementation does nothing
     }
 
     @Override
     public void onRegisterCustomSchemes(CefSchemeRegistrar registrar) {
+    	System.out.println("CefAppHandlerAdapter:onRegisterCustomSchemes: "+registrar);
         // The default implementation does nothing
     }
 
     @Override
     public void onContextInitialized() {
+    	System.out.println("CefAppHandlerAdapter:onContextInitialized");
         // The default implementation does nothing
     }
 
     @Override
     public CefPrintHandler getPrintHandler() {
+    	System.out.println("CefAppHandlerAdapter:getPrintHandler");
         // The default implementation does nothing
         return null;
     }
 
     @Override
     public void onScheduleMessagePumpWork(long delay_ms) {
+    	System.out.println("CefAppHandlerAdapter:onScheduleMessagePumpWork");
         CefApp.getInstance().doMessageLoopWork(delay_ms);
     }
 }
