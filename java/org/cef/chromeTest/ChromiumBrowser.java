@@ -18,7 +18,6 @@ public class ChromiumBrowser {
 		Chromium browser = new Chromium();
 		int style = SWT.NO_BACKGROUND;
 		if (browser != null) {
-//			browser.setBrowser (this);
 			browser.create (parent, style);
 			browser.setText(BROWSERTET, true);
 
@@ -30,26 +29,12 @@ public class ChromiumBrowser {
 	public void createPartControl(Composite parent) throws Exception {
 		parent.setLayout(new FillLayout());
 		
-//		int style = getStyle ();
 		int style = SWT.NO_BACKGROUND;
-//		browser = new ExtendedBrowser(parent, SWT.NO_BACKGROUND, new Chromium());
 		Chromium webBrowser = new Chromium();
-//		WebBrowser webBrowser = chromium.crenew BrowserFactory ().createWebBrowser (style);
 		webBrowser.setBrowser(parent);
 		if (webBrowser != null) {
-//			webBrowser.setBrowser (this);
 			webBrowser.create (parent, -1); //FIXME SL
-//			return;
 		}
 		webBrowser.setText(BROWSERTET, true);
-		
-//		browser = new ExtendedBrowser(parent, SWT.NO_BACKGROUND, new Chromium());
-//		browser.setLayout(new FillLayout());
-		//browser.setUrl("https://www.google.com/");
-		//browser.setUrl("https://www.onlinetexteditor.com/");
-		//browser.setUrl("file://home/stefan/git/test.html");
-//		browser.setUrl("http://35.246.187.143/");
-		//browser.setUrl("http://da2cb651-6971-4d1d-8956-f28b98392811.35.234.81.45.nip.io/#/coffee-editor/backend/examples/SuperBrewer3000");
-//		browser.setText(BROWSERTET, true);
 	}
 }

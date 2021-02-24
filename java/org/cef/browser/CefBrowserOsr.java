@@ -4,6 +4,7 @@
 
 package org.cef.browser;
 
+import java.awt.Canvas;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -27,6 +28,8 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -85,6 +88,8 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         super(client, url, context, parent, inspectAt);
         isTransparent_ = transparent;
         renderer_ = new CefRenderer(transparent);
+        
+
         createGLCanvas();
     }
 
@@ -127,9 +132,18 @@ public class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
     @SuppressWarnings("serial")
     private void createGLCanvas() {
-        GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
+    	GLProfile glprofile;
+    	if(OS.isMacintosh()) {
+    		// FIXME SL
+    		//GLProfile.disableOpenGLCore = true;
+    	}
+    	glprofile = GLProfile.getMaxFixedFunc(true);
+    	
+    	
+        //GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
         GLCapabilities glcapabilities = new GLCapabilities(glprofile);
         canvas_ = new GLCanvas(glcapabilities) {
+    	//canvas_ = new Canvas() {
             private Method scaleFactorAccessor = null;
             private boolean removed_ = true;
 

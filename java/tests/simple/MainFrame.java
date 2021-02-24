@@ -4,6 +4,22 @@
 
 package tests.simple;
 
+import org.cef.CefApp;
+import org.cef.CefApp.CefAppState;
+import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.OS;
+import org.cef.SystemBootstrap;
+import org.cef.browser.CefBrowser;
+import org.cef.browser.CefFrame;
+import org.cef.chromeTest.ChromeExtractor;
+import org.cef.chromeTest.ResourceLoaderForLinux;
+import org.cef.chromeTest.ResourceLoaderForMacintosh;
+import org.cef.handler.CefAppHandlerAdapter;
+import org.cef.handler.CefDisplayHandlerAdapter;
+import org.cef.handler.CefFocusHandlerAdapter;
+import org.cef.handler.CefGuiHandlerAdapter;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -16,17 +32,6 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
-
-import org.cef.CefApp;
-import org.cef.CefApp.CefAppState;
-import org.cef.CefClient;
-import org.cef.CefSettings;
-import org.cef.browser.CefBrowser;
-import org.cef.browser.CefFrame;
-import org.cef.handler.CefAppHandlerAdapter;
-import org.cef.handler.CefDisplayHandlerAdapter;
-import org.cef.handler.CefFocusHandlerAdapter;
-import org.cef.handler.DefaultAppHandler;
 
 /**
  * This is a simple example application using JCEF.
@@ -65,7 +70,8 @@ public class MainFrame extends JFrame {
         //     required native libraries, initializes CEF accordingly, starts a
         //     background task to handle CEF's message loop and takes care of
         //     shutting down CEF after disposing it.
-        CefApp.addAppHandler(new DefaultAppHandler());
+        //CefApp.addAppHandler(new AppHandler());
+        CefApp.addGuiHandler(new CefGuiHandlerAdapter());
         CefSettings settings = new CefSettings();
         settings.windowless_rendering_enabled = useOSR;
         cefApp_ = CefApp.getInstance(settings);
@@ -85,6 +91,7 @@ public class MainFrame extends JFrame {
         //     behavior of the browser. See tests.detailed.MainFrame for an example
         //     of how to use these handlers.
         client_ = cefApp_.createClient();
+   //     client_.setFactory(new WebBrowserFactory());
 
         // (3) One CefBrowser instance is responsible to control what you'll see on
         //     the UI component of the instance. It can be displayed off-screen
@@ -98,7 +105,7 @@ public class MainFrame extends JFrame {
         //     by calling the method "getUIComponent()" on the instance of CefBrowser.
         //     The UI component is inherited from a java.awt.Component and therefore
         //     it can be embedded into any AWT UI.
-        browser_ = client_.createBrowser(startURL, useOSR, isTransparent);
+        browser_ = client_.createBrowser(startURL, useOSR, isTransparent, null);
         browerUI_ = (Component) browser_.getUIComponent();
 
         // (4) For this minimal browser, we need only a text field to enter an URL
@@ -116,6 +123,8 @@ public class MainFrame extends JFrame {
             }
         });
 
+        if(client_!= null) {
+        	
         // Update the address field when the browser URL changes.
         client_.addDisplayHandler(new CefDisplayHandlerAdapter() {
             @Override
@@ -123,6 +132,7 @@ public class MainFrame extends JFrame {
                 address_.setText(url);
             }
         });
+        }
 
         // Clear focus from the browser when the address field gains focus.
         address_.addFocusListener(new FocusAdapter() {
@@ -134,6 +144,8 @@ public class MainFrame extends JFrame {
                 address_.requestFocus();
             }
         });
+
+        if(client_!= null) {
 
         // Clear focus from the address field when the browser gains focus.
         client_.addFocusHandler(new CefFocusHandlerAdapter() {
@@ -150,7 +162,7 @@ public class MainFrame extends JFrame {
                 browserFocus_ = false;
             }
         });
-
+        }
         // (5) All UI components are assigned to the default content pane of this
         //     JFrame and afterwards the frame is made visible to the user.
         getContentPane().add(address_, BorderLayout.NORTH);
@@ -173,6 +185,29 @@ public class MainFrame extends JFrame {
 
     public static void main(String[] args) {
         // Perform startup initialization on platforms that require it.
+		if(OS.isWindows()) {
+			System.setProperty("eclipse.home.location", "D:\\Privat\\Portable\\eclipse");
+		}
+		if(OS.isLinux()) {
+			System.setProperty("eclipse.home.location", "/home/stefan/eclipse/java-2020-12/eclipse");
+		}
+		if(OS.isMacintosh()) {
+			System.setProperty("eclipse.home.location", "/Users/teamumbrella/eclipse/java-2020-12/Eclipse.app/Contents/Eclipse/");
+		}
+    	
+		//if (OS.isWindows()) {
+		//	SystemBootstrap.setLoader(new ResourceLoaderForWindows());
+		//}
+		if(OS.isLinux()) {
+			SystemBootstrap.setLoader(new ResourceLoaderForLinux());
+//			JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
+		}
+		if(OS.isMacintosh()) {
+			SystemBootstrap.setLoader(new ResourceLoaderForMacintosh());
+			//JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
+		}
+		ChromeExtractor loader = new ChromeExtractor();
+		loader.startup();
         if (!CefApp.startup(args)) {
             System.out.println("Startup initialization failed!");
             return;
@@ -182,6 +217,8 @@ public class MainFrame extends JFrame {
         // to Google as the very first loaded page. Windowed rendering mode is used by
         // default. If you want to test OSR mode set |useOsr| to true and recompile.
         boolean useOsr = false;
-        new MainFrame("http://www.google.com", useOsr, false);
+        MainFrame mainFrame = new MainFrame("http://www.google.com", useOsr, false);
+        mainFrame.setLocationRelativeTo(null);  
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
     }
 }

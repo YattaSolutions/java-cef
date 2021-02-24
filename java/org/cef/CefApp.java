@@ -156,6 +156,8 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
             SystemBootstrap.loadLibrary("jcef");
         } else if (OS.isLinux()) {
             SystemBootstrap.loadLibrary("cef");
+        }else if(OS.isMacintosh()){
+        	SystemBootstrap.loadLibrary("jawt");
         }
         if (appHandler_ == null) {
             appHandler_ = this;
@@ -430,10 +432,19 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
                     // Avoid to override user values by testing on NULL
                     if (OS.isMacintosh()) {
                         if (settings.browser_subprocess_path == null) {
-                            Path path = Paths.get(library_path,
+                        	System.out.println("Load with: "+System.getProperty(VARIABLE));
+                        	if(System.getProperty(VARIABLE) != null) {
+                        		library_path = System.getProperty(VARIABLE);
+                        		settings.resources_dir_path = library_path;
+                        		Path path = Paths.get(library_path, "jcef Helper.app", "/Contents", "MacOS", "jcef Helper");
+                                settings.browser_subprocess_path = path.normalize().toAbsolutePath().toString();
+                        		System.out.println("SUBPROCESS: "+settings.browser_subprocess_path );
+                        	}else {
+                        		Path path = Paths.get(library_path,
                                 "../Frameworks/jcef Helper.app/Contents/MacOS/jcef Helper");
-                            settings.browser_subprocess_path =
-                                path.normalize().toAbsolutePath().toString();
+                               settings.browser_subprocess_path = path.normalize().toAbsolutePath().toString();
+                        	}
+                            
                         }
                     } else if (OS.isWindows()) {
                         if (settings.browser_subprocess_path == null) {
@@ -565,13 +576,15 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
      */
     public static final boolean startup(String[] args) {
         if (OS.isLinux() || OS.isMacintosh()) {
+        	SystemBootstrap.loadLibrary("jawt");
             SystemBootstrap.loadLibrary("jcef");
             if(OS.isMacintosh()) {
+            	System.out.println("Load with: "+System.getProperty(VARIABLE));
             	if(System.getProperty(VARIABLE) != null) {
-                    return N_Startup(null);
+                    return N_Startup(System.getProperty(VARIABLE));
             	}
             }
-            return N_Startup(OS.isMacintosh() ? getCefFrameworkPath(args) : null);
+            return N_Startup(OS.isMacintosh() ? getJcefLibPath() : null);
         }
         return true;
     }
@@ -581,6 +594,9 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
      * @return The path to the jcef library
      */
     public static final String getJcefLibPath() {
+    	if(System.getProperty(VARIABLE)!= null) {
+    		return System.getProperty(VARIABLE);
+    	}
         String library_path = System.getProperty("java.library.path");
         String separator=System.getProperty("path.separator");
         String[] paths = library_path.split(separator);
@@ -595,7 +611,9 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
                 }
             });
             if (found != null && found.length != 0) {
+            	if(System.getProperty(VARIABLE) == null) {
             	System.setProperty(VARIABLE, path);
+            	}
             	return path;
             }
         }
@@ -620,8 +638,9 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
 		}else {
 			library_path = file.getAbsolutePath();
 		}
-		
+		if(System.getProperty(VARIABLE)== null) {
 		System.setProperty(VARIABLE, library_path);
+		}
         return library_path;
     }
 
@@ -639,8 +658,9 @@ public class CefApp extends CefAppHandlerAdapter implements EventListener {
         }
 
         // Determine the path relative to the JCEF lib location in the app bundle.
-        return new File(getJcefLibPath() + "/../Frameworks/Chromium Embedded Framework.framework")
-            .getAbsolutePath();
+        return new File(getJcefLibPath()).getAbsolutePath();
+        //return new File(getJcefLibPath() + "/../Frameworks/Chromium Embedded Framework.framework")
+        //    .getAbsolutePath();
     }
 
     private final static native boolean N_Startup(String pathToCefFramework);

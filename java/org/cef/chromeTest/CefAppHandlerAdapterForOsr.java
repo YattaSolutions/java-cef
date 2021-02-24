@@ -35,7 +35,7 @@ public class CefAppHandlerAdapterForOsr  implements CefAppHandler {
 		long now = System.currentTimeMillis();
 		if (CefApp.getState() != CefAppState.TERMINATED && null != display && !display.isDisposed()) {
 			if((now-lastUpdate)>kMaxTimer) {
-//				System.out.println("N_DoMessageLoopWork():"+(now-lastUpdate));
+				System.out.println("onScheduleMessagePumpWork: "+(now-lastUpdate));
 				CefApp.getInstance().N_DoMessageLoopWork();
 				lastUpdate = now;
 			}
@@ -68,6 +68,7 @@ public class CefAppHandlerAdapterForOsr  implements CefAppHandler {
 	}
 
 	public static void startExternalMessageLoop() {
+		System.out.println("startExternalMessageLoop");
 		Display.getDefault().timerExec(timerDelay, loopWork);
 	}
 	
@@ -86,6 +87,9 @@ public class CefAppHandlerAdapterForOsr  implements CefAppHandler {
 
 	@Override
 	public void onBeforeCommandLineProcessing(String process_type, CefCommandLine command_line) {
+		String value = CefApp.getJcefLibPath();
+		command_line.appendSwitchWithValue("--framework-dir-path", value);
+		command_line.appendSwitchWithValue("--main-bundle-path", value);
 	}
 
 	@Override

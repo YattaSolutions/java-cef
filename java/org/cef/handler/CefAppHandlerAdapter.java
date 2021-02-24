@@ -17,9 +17,6 @@ import org.cef.callback.CefSchemeRegistrar;
 public abstract class CefAppHandlerAdapter implements CefAppHandler {
     private String[] args_;
 
-    public CefAppHandlerAdapter() {
-    	
-    }
     public CefAppHandlerAdapter(String[] args) {
         args_ = args;
     }
@@ -64,6 +61,11 @@ public abstract class CefAppHandlerAdapter implements CefAppHandler {
                 }
             }
         }
+
+        String value = CefApp.getJcefLibPath();
+    	command_line.appendSwitchWithValue("--framework-dir-path", value);
+    	command_line.appendSwitchWithValue("--main-bundle-path", value);
+    	
     }
 
     @Override

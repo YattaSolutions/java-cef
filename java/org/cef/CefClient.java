@@ -124,18 +124,18 @@ public class CefClient extends CefClientHandler
     // CefClientHandler
 
     public CefBrowser createBrowser(
-            String url, boolean isOffscreenRendered, boolean isTransparent) {
-        return createBrowser(url, isOffscreenRendered, isTransparent, null);
+            String url, boolean isOffscreenRendered, boolean isTransparent, Object parent) {
+        return createBrowser(url, isOffscreenRendered, isTransparent, null, parent);
     }
 
     public CefBrowser createBrowser(String url, boolean isOffscreenRendered, boolean isTransparent,
-            CefRequestContext context) {
+            CefRequestContext context, Object parent) {
         if (isDisposed_)
             throw new IllegalStateException("Can't create browser. CefClient is disposed");
         if(factory == null) {
         	factory = new CefBrowserFactory();
         }
-        return factory.create(this, url, isOffscreenRendered, isTransparent, context);
+        return factory.create(this, url, isOffscreenRendered, isTransparent, context, parent);
     }
 
     @Override

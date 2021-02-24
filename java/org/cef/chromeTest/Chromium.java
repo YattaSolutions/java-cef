@@ -3,7 +3,9 @@ package org.cef.chromeTest;
 import static org.cef.callback.CefMenuModel.MenuId.MENU_ID_USER_LAST;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Frame;
 import java.util.Base64;
 import java.util.HashMap;
@@ -11,7 +13,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.JApplet;
 import javax.swing.JDialog;
+import javax.swing.JPanel;
 
 import org.cef.CefApp;
 import org.cef.CefClient;
@@ -69,7 +73,7 @@ public class Chromium implements Browser{
 		}
 		if(OS.isMacintosh()) {
 			SystemBootstrap.setLoader(new ResourceLoaderForMacintosh());
-//			//JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
+			//JNILibLoaderBase.setLoadingAction(new MyLoaderAction());
 		}
 	}
 
@@ -84,7 +88,7 @@ public class Chromium implements Browser{
 
 	@Override
 	public void create(Composite parent, int style) {
-//		parent.getDisplay().setData("org.eclipse.swt.internal.gtk.noInputMethod", null);
+		parent.getDisplay().setData("org.eclipse.swt.internal.gtk.noInputMethod", null);
 		if(style == -1) {
 			composite = new Composite(browser, SWT.EMBEDDED | SWT.NO_BACKGROUND);
 			frame = SWT_AWT.new_Frame(composite);
@@ -95,6 +99,8 @@ public class Chromium implements Browser{
 		if (null == cefApp) {
 			CefSettings settings = new CefSettings();
 			String[] args = {};
+			
+			
 			settings.windowless_rendering_enabled = OS.isLinux() || OS.isMacintosh();
 			if (OS.isLinux() || OS.isMacintosh()) {
 				CefAppHandlerAdapterForOsr appHandler = new CefAppHandlerAdapterForOsr();
@@ -109,29 +115,18 @@ public class Chromium implements Browser{
 		if (null == cefClient) {
 			cefClient = cefApp.createClient();
 			cefClient.setFactory(new WebBrowserFactory());
-//			messageRouter = CefMessageRouter.create();
-//			cefClient.addMessageRouter(messageRouter);
-//			cefClient.addDownloadHandler(new CefDownloadHandlerAdapter() {
-//				@Override
-//				public void onDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem,
-//						CefDownloadItemCallback callback) {
-//				}
-//			});
-//			DefaultCefContextMenuHandler myDefaultContextMenuHandler = createDefaultContextMenuHandler();
-//			cefClient.addContextMenuHandler(myDefaultContextMenuHandler);
 		}
 
-//		webBrowser = cefClient.createBrowser("about:blank", OS.isLinux(), false); //FIXME SL
-		webBrowser = cefClient.createBrowser("about:blank", false, false);
-//		
-//		webBrowser = cefClient.createBrowser("about:blank", OS.isLinux(), false);
+//		webBrowser = cefClient.createBrowser("about:blank", false, false);
+		
+		webBrowser = cefClient.createBrowser("about:blank", OS.isLinux(), false, parent);
+		Object uiComponent = webBrowser.getUIComponent();
 		if(this.frame != null) {
-			final Component browserUi = (Component) webBrowser.getUIComponent();
-			frame.add(browserUi, BorderLayout.CENTER);
-			
-		}		
-//		frame.add(browserUi, BorderLayout.CENTER);
-
+			final Component browserUi = (Component) uiComponent;
+			if(browserUi != null) {
+				frame.add(browserUi, BorderLayout.CENTER);
+			}
+		}
 		if ((OS.isLinux() || OS.isMacintosh()) && !initComplete) {
 //			CefApp app = CefApp.getInstance();
 //			CefGuiHandler guiHandler = CefApp.getGuiHandler();

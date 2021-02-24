@@ -16,19 +16,20 @@ public class ResourceLoaderForMacintosh implements Loader {
 	public void loadLibrary(String libname) {
 		System.out.println("Load "+ libname);
 		
-		if ("jawt".equals(libname)) {
-			return;
-		}
+		//if ("jawt".equals(libname)) {
+		//	return;
+		//}
 		
+		String path = CefApp.getJcefLibPath();
 		if ("jcef".equals(libname)) {
-			System.load(CefApp.getJcefLibPath() + "/libjcef.dylib");
+			System.load(path + "/libjcef.dylib");
 			return;
 		}
 		if ("cef".equals(libname)) {
-			String path = CefApp.getJcefLibPath();
 			System.load(path + "/libcef.dylib");
 			return;
 		}
+		
 		System.loadLibrary(libname);
 	}
 

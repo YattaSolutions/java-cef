@@ -35,8 +35,12 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.opengl.GLData;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GL;
@@ -44,12 +48,14 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.util.GLBuffers;
 
 import jogamp.graph.geom.plane.AffineTransform;
+import jogamp.opengl.macosx.cgl.CGL;
 
 /**
  * This class represents an off-screen rendered browser.
@@ -115,105 +121,81 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
     private synchronized long getWindowHandle() {
         if (window_handle_ == 0) {
             NativeSurface surface = canvas_.getNativeSurface();
+            
             if (surface != null) {
+            	long displayHandle = surface.getDisplayHandle();
+            	long surfaceHandle = surface.getSurfaceHandle();
+            	System.out.println(displayHandle+":::"+surfaceHandle);
                 surface.lockSurface();
                 window_handle_ = getWindowHandle(surface.getSurfaceHandle());
                 surface.unlockSurface();
                 assert (window_handle_ != 0);
             }
         }
+        System.out.println("WindowHandle: "+window_handle_);
         return window_handle_;
     }
 
     @SuppressWarnings("serial")
     private void createGLCanvas() {
-        GLProfile glprofile = GLProfile.getMaxFixedFunc(true);
-        GLCapabilities glcapabilities = new GLCapabilities(glprofile);
-//        canvas_ = new GLCanvas(this.parentComponent, SWT.EMBEDDED | SWT.NO_BACKGROUND);
-        canvas_ = new GLCanvas(this.parentComponent, SWT.EMBEDDED | SWT.NO_BACKGROUND, glcapabilities, null);
+        GLProfile profile = GLProfile.getMaxFixedFunc(true);
+        GLCapabilities glcapabilities = new GLCapabilities(profile);
+        
+        //canvas_ = new Canvas(this.parentComponent, SWT.EMBEDDED | SWT.NO_BACKGROUND);
+        
+        
+        canvas_  = new GLCanvas(this.parentComponent, SWT.NO_BACKGROUND, glcapabilities, null);
+        GLData gldata = new GLData();
+        gldata.doubleBuffer = true;
+        
+        //GLProfile profile = GLProfile.getDefault();
+       // org.eclipse.swt.opengl.GLCanvas canvas = new org.eclipse.swt.opengl.GLCanvas(this.parentComponent, SWT.NO_BACKGROUND, gldata);
+        //canvas.setCurrent();
+        //canvas_ = new GLCanvas(this.parentComponent, SWT.NO_BACKGROUND, glcapabilities, null);
+        canvas_.addListener(SWT.Resize, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				System.out.println(event);
+			}
+		});
+       // canvas_ = new org.eclipse.swt.opengl.GLCanvas(this.parentComponent, SWT.NO_BACKGROUND, gldata);
+       
+        
+        //canvas_.setCurrent();
+        //GLProfile glprofile = GLProfile.getDefault();
+        //final GLContext context = GLDrawableFactory.getFactory(glprofile).createExternalGLContext();
+        //glcanvas.addListener(SWT.Resize, new Listener() {
+        //    public void handleEvent(Event event) {
+        //    	
+        //    }
+        //});
+        
+        //GLDrawableFactory glContext= GLDrawableFactory.getFactory(profile);
+        //GLContext context = glContext.createExternalGLContext();
+        //‚canvas_.setContext(context, true);
+        
         canvas_.setLayout(new FillLayout());
         canvas_.addPaintListener(new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent arg0) {
+				System.out.println("paintControl");
 				createBrowserIfRequired(true);
+				
+				
+				// set GLContext if not set
+				GLContext context = canvas_.getContext();
+				context.makeCurrent();
+				//canvas_.getContext().se
+				//if(context == null) {
+				GLContext contextNew = GLDrawableFactory.getFactory(canvas_.getGLProfile()).createExternalGLContext();
+			    canvas_.setContext(contextNew, true);
+				//}
+				
 			}
 		});
         
-//            private Method scaleFactorAccessor = null;
-//            private boolean removed_ = true;
-
-//FXIME SL            @Override
-//            public void paint(Graphics g) {
-//                createBrowserIfRequired(true);
-//                if (g instanceof Graphics2D) {
-//                    GraphicsConfiguration config = ((Graphics2D) g).getDeviceConfiguration();
-//                    depth = config.getColorModel().getPixelSize();
-//                    depth_per_component = config.getColorModel().getComponentSize()[0];
-//
-//                    if (OS.isMacintosh()
-//                            && System.getProperty("java.runtime.version").startsWith("1.8")) {
-//                        // This fixes a weird thing on MacOS: the scale factor being read from
-//                        // getTransform().getScaleX() is incorrect for Java 8 VMs; it is always
-//                        // 1, even though Retina display scaling of window sizes etc. is
-//                        // definitely ongoing somewhere in the lower levels of AWT. This isn't
-//                        // too big of a problem for us, because the transparent scaling handles
-//                        // the situation, except for one thing: the screenshot-grabbing
-//                        // code below, which reads from the OpenGL context, must know the real
-//                        // scale factor, because the image to be read is larger by that factor
-//                        // and thus a bigger buffer is required. This is why there's some
-//                        // admittedly-ugly reflection magic going on below that's able to get
-//                        // the real scale factor.
-//                        // All of this is not relevant for either Windows or MacOS JDKs > 8,
-//                        // for which the official "getScaleX()" approach works fine.
-//                        try {
-//                            if (scaleFactorAccessor == null) {
-//                                scaleFactorAccessor = getClass()
-//                                                              .getClassLoader()
-//                                                              .loadClass("sun.awt.CGraphicsDevice")
-//                                                              .getDeclaredMethod("getScaleFactor");
-//                            }
-//                            Object factor = scaleFactorAccessor.invoke(config.getDevice());
-//                            if (factor instanceof Integer) {
-//                                scaleFactor_ = ((Integer) factor).doubleValue();
-//                            } else {
-//                                scaleFactor_ = 1.0;
-//                            }
-//                        } catch (InvocationTargetException | IllegalAccessException
-//                                | IllegalArgumentException | NoSuchMethodException
-//                                | SecurityException | ClassNotFoundException exc) {
-//                            scaleFactor_ = 1.0;
-//                        }
-//                    } else {
-//                        scaleFactor_ = ((Graphics2D) g).getTransform().getScaleX();
-//                    }
-//                }
-//                super.paint(g);
-//            }
-        
-//        @Override
-//        public void addNotify() {
-//            super.addNotify();
-//            if (removed_) {
-//                notifyAfterParentChanged();
-//                removed_ = false;
-//            }
-//        }
-//
-//        @Override
-//        public void removeNotify() {
-//            if (!removed_) {
-//                if (!isClosed()) {
-//                    notifyAfterParentChanged();
-//                }
-//                removed_ = true;
-//            }
-//            super.removeNotify();
-//        }
-
-//
-
-//        };
-
         // The GLContext will be re-initialized when changing displays, resulting in calls to
         // dispose/init/reshape.
         canvas_.addGLEventListener(new GLEventListener() {
@@ -221,6 +203,7 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 			public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 			  int newWidth = width;
                int newHeight = height;
+               System.out.println("Reshape");
                if (OS.isMacintosh()) {
                    // HiDPI display scale correction support code
                    // For some reason this does seem to be necessary on MacOS only.
@@ -233,11 +216,13 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 //               org.eclipse.swt.graphics.Point display = canvas_.toDisplay(1, 1);
                org.eclipse.swt.graphics.Point display = canvas_.getLocation();
                screenPoint_ = new Point(display.x+ canvas_.getSize().x, display.y + canvas_.getSize().y);
+               System.out.println(newWidth+"-"+newHeight);
                wasResized(newWidth, newHeight);				
 			}
 			
 			@Override
 			public void init(GLAutoDrawable drawable) {
+				System.out.println("INIT GL");
               renderer_.initialize(drawable.getGL().getGL2());
 			}
 			
@@ -248,8 +233,10 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 			
 			@Override
 			public void display(GLAutoDrawable drawable) {
-              renderer_.render(drawable.getGL().getGL2());
+				System.out.println("display");
+              //renderer_.render(drawable.getGL().getGL2());
 			}
+			
         });
         
         
@@ -352,6 +339,7 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
     public void onPaint(CefBrowser browser, boolean popup, java.awt.Rectangle[] dirtyRects,
             ByteBuffer buffer, int width, int height) {
         // if window is closing, canvas_ or opengl context could be null
+    	System.out.println("OnPaint");
         final GLContext context = canvas_ != null ? canvas_.getContext() : null;
 
         if (context == null) {
@@ -370,7 +358,7 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 		context.release();
 		CefApp.getGuiHandler().asyncExec(new Runnable() {
             public void run() {
-				canvas_.display();
+        canvas_.display();
 	}
         });
     }
@@ -572,7 +560,7 @@ public class CefBrowserOsr_SWT extends CefBrowser_N implements CefRenderHandler 
 
                 @Override
                 public void display(GLAutoDrawable aDrawable) {
-                    canvas_.removeGLEventListener(this);
+                	canvas_.removeGLEventListener(this);
                     try {
                         future.complete(pixelGrabberCallable.call());
                     } catch (Exception e) {
