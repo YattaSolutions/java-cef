@@ -1,20 +1,29 @@
 Probleme:
-- Das Ursprungliche Problem war, dass die CPU bei 100% auslastung war.
+- Das Ursprungliche Problem war, dass die CPU bei 100% Auslastung war.
 
-Ich habe die Version aktualisiert vom GIT auf den Stand vom 06.01.2021 geändert. 
+**Realisierte Änderungen:**
+- Chrome Version aktualisiert
+- OSR_SWT erstellt
+- Events von SWT zu AWT konvertieren
+
+Ich habe die Version vom GIT auf den Stand vom 06.01.2021 aktualisiert. 
 Weiterhin habe ich in den CMakeLists.txt die Chrome Version Zeile 129 auf "88.1.6+g4fe33a1+chromium-88.0.4324.96" aktualisiert. Damit habe ich den aktuellen Build von Windows und Linux hergestellt. 
 
 
 **- Windows** Branch: feature/try_latest
-
-Bei Windows wird die die Klasse CefBrowserWr benutzt werden. Diese sorgt dafür das das native Framework CEF mittels eines Handle auf ein AWT.Canvas den Browserinhalt direkt schreiben kann. Es muss dann nur dafür gesorgt werden, dass alle Events die auf dem Canvas registriert sind dem CEF-System übner native Methoden übermittelt werden.
+  - Java "11.0.1"
+  - Python 3.8
+  
+Bei Windows wird die die Klasse CefBrowserWr benutzt werden. Diese sorgt dafür das das native Framework CEF mittels eines Handle auf ein AWT-Canvas den Browserinhalt direkt schreiben kann. Es muss dann nur dafür gesorgt werden, dass alle Events die auf dem Canvas registriert sind dem CEF-System über die native Methoden übermittelt werden.
 
 **- Linux**  Branch: feature/try_latest
-Bei Linux wird das OSR Verfahren benutzt. der normale OSR Ansatz hat dass Problem, dass es einen AWT und SWT Thread benötigt, welche sich gegenseitig behacken. Das führt zu einer höheren CPU Last. Dieses wurde mittels des CefBrowserOsr_SWT behoben. der besitzt einen GLCanvas.
+  - Java 11.0.10
+  - Python 3.8.5
+Bei Linux wird das OSR Verfahren benutzt. Der normale OSR Ansatz hat dass Problem, dass es einen AWT und SWT Thread benötigt, welche sich gegenseitig behacken. Das führt zu einer höheren CPU Last. Dieses wurde mittels des CefBrowserOsr_SWT behoben. Der besitzt einen GLCanvas.
 Dieser wird in jogl in drei unterschiedlichen Arten bereit gestellt. Es wurde im spezielle Fall der com.jogamp.opengl.swt.GLCanvas benutzt. Die Darstellung funktioniert mit dieser Klasse einwandfrei. 
 
 - CefBrowserOSR
-Für die Optimierung der Abläufe wurde die Klasse CefAppHandlerAdapterForOsr angepasst, dass diese falls bedarf besteht, die N_DoMessageLoopWork Methode aufruft. Der Handler ist für ein regelmäßigen Aufrufen der entsprechen natioven Bibliothek zuständig und muss im GUI-Thread im unseren Beispiel SWT-Display-Thread laufen.
+Für die Optimierung der Abläufe wurde die Klasse CefAppHandlerAdapterForOsr angepasst, dass diese falls Bedarf besteht, die N_DoMessageLoopWork Methode aufruft. Der Handler ist für ein regelmäßigen Aufrufen der entsprechen nativen Bibliothek zuständig und muss im GUI-Thread im unseren Beispiel SWT-Display-Thread laufen.
 
 Da dieses trotzdem zu einer CPU-Last von 20% führte wurde ein Idle Modus integriert, so dass der normale 
 Schleifenlauf nur alle 1500ms diese Methode aufruft. Damit der Browser jedoch rechtzeitig auf die Events reagieren kann. Wurde zusätzlich ein EventListener in den CefBrowser_N hinzugefügt. Dieser unterbricht den Idle Modus de Handlers, so dass der Aufruf dann alle 30ms stattfindet. 
@@ -22,36 +31,30 @@ Im Idlemodus: Prozessorlast ca. 1-1,5%
 Im normalen Modus ca. 20%
 
 
-
-Die Versuche eine zusätzlioche Komponente über dem GLCanvas transparent zu zeichen und diese auf die Oberflächenevents reagieren zulassen sind gescheitert. 
+Die Versuche eine zusätzliche Komponente über dem GLCanvas transparent zu zeichnen und diese auf die Oberflächenevents reagieren zulassen sind gescheitert. 
 
 **Die nächsten Schritte:**
-- wären auch hier zu überprüfen, ob das ursprüngliche com.jogamp.opengl.swt.GLCanvas nur falsch benutzt wurde und es die Möglichkeit gibt die Events abzufangen.
+- Wären auch hier zu überprüfen, ob das ursprüngliche com.jogamp.opengl.swt.GLCanvas nur falsch benutzt wurde und es die Möglichkeit gibt die Events abzufangen.
 - Oder wie bei Mac auf das org.eclipse.swt.opengl.GLCanvas zu setzen.
 
 
-
 **Macintosh** Branch: feature/try_Run_Mac
+  - Java 1.8.0.281
+  - python 2.7.16
+  - Mac Big Sur 11.2.1
+Für Mac ist von jcef auch die CefBrowserWr vorgesehen. Allerdings funktioniert diese nur mit AWT-Fenstern. Unter Mac wird streiten sich das AWT-Framework und das SWT-Framework um die den ersten main-Thread. Lösung war hier in CefBrowserWr die Komponenten im GUI-Thread zu initialisieren.
 
-Für Mac ist von jcef auch die CefBrowserWr vorgesehen. Allerdings funktioniert diese nur mit AWT-Fenstern. Unter Mac wird streiten sich das AWT-Framework und das SWT-Framework um die den ersten main Thread. Lösung war hier in CefBrowserWr die Komponenten im GUI-Thread zu initialisieren.
-
-Nachdem dieses gelöst war. Konnte allerdings nicht der richtige WindowHandle ermittelt werden. Hierfür wurde CefBrowserWindowMac erweitert um das entsprechende Handle der SWT_AWT Bridge zu ermittelt und zurückzugeben. Diese klappte allerdings kann CEF nichts mit dem entsprechenden Windows-Handle anfangen, so dass auch hier der Ansatz vom OSR verfolgt wurde. 
+Nachdem dieses gelöst war konnte allerdings nicht der richtige WindowHandle ermittelt werden. Hierfür wurde CefBrowserWindowMac erweitert um das entsprechende Handle der SWT_AWT-Bridge zu ermittelt und zurückzugeben. Diese klappte allerdings kann CEF nichts mit dem entsprechenden Windows-Handle anfangen, so dass auch hier der Ansatz vom OSR verfolgt wurde. 
 
 Als erstes wurde der normale CefBrowser CefBrowserOsr verwendet, dieser hatte allerdings durch die unterschiedlichen GUI-Frameworks immer wieder Probleme und segmentation-fault. So dass als letztes der CefBrowserOsr_SWT benutzt werden sollte. 
 
-Die Initialisierung klappte, jedoch beim Zeichnen konnte in der Widget-Klasse von SWT in der Methode drawRect kein Natiover Context ermittelt werden, so dass es dort einen NPE gab und das Programm beendet wurde. 
-
+Die Initialisierung klappte, jedoch beim Zeichnen konnte in der Widget-Klasse von SWT in der Methode drawRect kein nativer Context ermittelt werden, so dass es dort einen NPE gab und das Programm beendet wurde. 
+org.eclipse.swt.widgets.Widget.java:762
 
 **Die nächsten Schritte** sind das integrieren der org.eclipse.swt.opengl.GLCanvas in den CefBrowserOsr_SWT. Dieser hat allerdings eine abgespektere API, so dass einige Methoden noch angepasst werden müssen.
 
 
-**Änderungen:**
-- Chrome Version aktualisiert
-- OSR_SWT erstellt
-- Events von SWT zu AWT konvertieren
-
-
-**ToDo:**
+**ToDo allgemein:**
 - Es müssen sämtliche Klassen aber auch die Renderer von protected class nach public Classes umgeschreiben werden.
 
 **ToDo Mac:**
